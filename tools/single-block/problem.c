@@ -65,13 +65,13 @@ double mtut_sol(double x, double y, double z)
 
 double sin_rhs(double x, double y, double z)
 {
-	return 8*(M_PI*M_PI)*sin(2*M_PI*x)*sin(2*M_PI*y);
+	return 1;
 }
 
 
 double sin_sol(double x, double y, double z)
 {
-	return sin(2*M_PI*x)*sin(2*M_PI*y);
+	return .5 * x * (1 - x);
 }
 
 
@@ -308,8 +308,8 @@ problem *problem_create(problem_id id, int nd, int map_id)
 		pb->boundary[WEST] =  DIRICHLET;
 		break;
 	case (SIN):
-		pb->boundary[NORTH] = DIRICHLET;
-		pb->boundary[SOUTH] = DIRICHLET;
+		pb->boundary[NORTH] = NEUMANN;
+		pb->boundary[SOUTH] = NEUMANN;
 		pb->boundary[EAST] =  DIRICHLET;
 		pb->boundary[WEST] =  DIRICHLET;
 		if (nd == 3) {
