@@ -460,6 +460,29 @@ PetscErrorCode stella_set_grid(stella *slv, int is[], int ie[], int num_cells, d
 	DM cda;
 	Vec gc;
 
+	{
+		int rank, size;
+		MPI_Comm_rank(slv->comm, &rank);
+		MPI_Comm_size(slv->comm, &size);
+
+		int nbefore, nafter;
+
+		nbefore = rank;
+		nafter = size - rank - 1;
+
+		int i;
+		for (int i = 0; i < nbefore; i++)
+			MPI_Barrier(slv->comm);
+
+		printf("\nrank %d\n", rank);
+		printf("is = %d %d\n", is[0], is[1]);
+		printf("ie = %d %d\n", ie[0], ie[1]);
+		printf("num_cells = %d\n", num_cells);
+
+		for (int i = 0; i < nafter; i++)
+			MPI_Barrier(slv->comm);
+	}
+
 	for (i = 0; i < slv->grid.nd; i++) {
 		slv->grid.is[i] = is[i];
 		slv->grid.ie[i] = ie[i];
