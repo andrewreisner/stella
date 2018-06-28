@@ -109,7 +109,7 @@ grid *grid_create(double startx, double endx, int nx,
 		if (grd->cart_coord[i] == 0)
 			grd->ibeg[i] = 0;
 		else
-			grd->ibeg[i] = 1;
+			grd->ibeg[i] = 3;
 	}
 
 	grd->nx = BLOCK_SIZE(grd->cart_coord[0], grd->num_procs[0], nx);
@@ -139,7 +139,7 @@ grid *grid_create(double startx, double endx, int nx,
 	for (i = 0; i < grd->nd; i++) {
 		nghosts = grd->ibeg[i];
 		if (grd->cart_coord[i] != (grd->num_procs[i] - 1))
-			nghosts += 1;
+			nghosts += 3;
 		grd->len[i] = grd->num_local[i] + nghosts;
 		grd->num_pts *= grd->len[i];
 	}

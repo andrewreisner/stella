@@ -302,6 +302,38 @@ PetscErrorCode stella_init(stella **solver_ctx, MPI_Comm comm,
 	stella *slv = (stella*) malloc(sizeof(stella));
 	slv->comm = comm;
 	slv->options.axisymmetric = axisymmetric;
+
+	{
+		int rank, size;
+		MPI_Comm_rank(slv->comm, &rank);
+		MPI_Comm_size(slv->comm, &size);
+
+		int nbefore, nafter;
+
+		nbefore = rank;
+		nafter = size - rank - 1;
+
+		int i;
+		for (int i = 0; i < nbefore; i++)
+			MPI_Barrier(comm);
+
+		printf("\nrank %d\n", rank);
+		printf("nglobal = %d %d\n", nGlobal[0], nGlobal[1]);
+		printf("nprocs = %d %d\n", nProcs[0], nProcs[1]);
+		printf("nLocal = %d %d\n", nLocal[0], nLocal[1]);
+		printf("offset = %d %d\n", offset[0], offset[1]);
+		printf("stride = %d %d\n", stride[0], stride[1]);
+		printf("cartCoord = %d %d\n", cartCoord[0], cartCoord[1]);
+		printf("periodic = %d %d\n", periodic[0], periodic[1]);
+		printf("periodic_storage = %d\n", periodic_storage);
+		printf("nd = %d\n", nd);
+		printf("axisymmetric = %d\n", axisymmetric);
+
+		for (int i = 0; i < nafter; i++)
+			MPI_Barrier(comm);
+	}
+
+
 	{
 		PetscBool flg;
 		ierr = petsc_options_has_name("-boxmg", &flg);CHKERRQ(ierr);
