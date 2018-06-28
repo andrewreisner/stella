@@ -105,13 +105,23 @@ grid *grid_create(double startx, double endx, int nx,
 	MPI_Comm_rank(cart_comm, &rank);
 	MPI_Cart_coords(cart_comm, rank, grd->nd, grd->cart_coord);
 
+	for (i = 0; i < grd->nd; i++) {
+		if (grd->cart_coord[i] == 0)
+			grd->ibeg[i] = 0;
+		else
+			grd->ibeg[i] = 1;
+	}
+
 	grd->nx = BLOCK_SIZE(grd->cart_coord[0], grd->num_procs[0], nx);
 	grd->ny = BLOCK_SIZE(grd->cart_coord[1], grd->num_procs[1], ny);
 
 	grd->num_local[0] = grd->nx;
 	grd->num_local[1] = grd->ny;
 
-	grd->num_pts = grd->nx * grd->ny;
+	for (i = 0; i < grd->nd; i++) {
+		grd->iend[i] = grd->ibeg[i] + grd->num_local[i] - 1;
+	}
+
 	grd->is[0] = BLOCK_LOW(grd->cart_coord[0], grd->num_procs[0], nx) + 1;
 	grd->ie[0] = BLOCK_HIGH(grd->cart_coord[0], grd->num_procs[0], nx) + 1;
 	grd->is[1] = BLOCK_LOW(grd->cart_coord[1], grd->num_procs[1], ny) + 1;
@@ -120,10 +130,20 @@ grid *grid_create(double startx, double endx, int nx,
 	if (grd->nd == 3) {
 		grd->nz = BLOCK_SIZE(grd->cart_coord[2], grd->num_procs[2], nz);
 		grd->num_local[2] = grd->nz;
-		grd->num_pts = grd->num_pts * grd->nz;
 		grd->is[2] = BLOCK_LOW(grd->cart_coord[2], grd->num_procs[2], nz) + 1;
 		grd->ie[2] = BLOCK_HIGH(grd->cart_coord[2], grd->num_procs[2], nz) + 1;
 	}
+
+	int nghosts;
+	grd->num_pts = 1;
+	for (i = 0; i < grd->nd; i++) {
+		nghosts = grd->ibeg[i];
+		if (grd->cart_coord[i] != (grd->num_procs[i] - 1))
+			nghosts += 1;
+		grd->len[i] = grd->num_local[i] + nghosts;
+		grd->num_pts *= grd->len[i];
+	}
+
 
 	grd->comm = MPI_COMM_WORLD;
 
@@ -136,15 +156,15 @@ grid *grid_create(double startx, double endx, int nx,
 	grd->hy = (endy - starty) / (grd->num_global[1] - 1);
 	grd->hz = (endz - startz) / (grd->num_global[2] - 1);
 
-	startx = startx + (grd->is[0]-1)*grd->hx;
-	starty = starty + (grd->is[1]-1)*grd->hy;
-	startz = startz + (grd->is[2]-1)*grd->hz;
+	startx = startx + (grd->is[0]-1)*grd->hx - grd->ibeg[0]*grd->hx;
+	starty = starty + (grd->is[1]-1)*grd->hy - grd->ibeg[1]*grd->hy;
+	startz = startz + (grd->is[2]-1)*grd->hz - grd->ibeg[2]*grd->hz;
 
 	if (grd->nd == 3) {
-		for (k = 0; k < grd->nz; k++) {
-			for (j = 0; j < grd->ny; j++) {
-				for (i = 0; i < grd->nx; i++) {
-					ind = k*grd->nx*grd->ny + j*grd->nx + i;
+		for (k = 0; k < grd->len[2]; k++) {
+			for (j = 0; j < grd->len[1]; j++) {
+				for (i = 0; i < grd->len[0]; i++) {
+					ind = k*grd->len[0]*grd->len[1] + j*grd->len[0] + i;
 					grd->x[ind] = startx + i*grd->hx;
 					grd->y[ind] = starty + j*grd->hy;
 					grd->z[ind] = startz + k*grd->hz;
@@ -152,9 +172,9 @@ grid *grid_create(double startx, double endx, int nx,
 			}
 		}
 	} else {
-		for (j = 0; j < grd->ny; j++) {
-			for (i = 0; i < grd->nx; i++) {
-				ind = j*grd->nx + i;
+		for (j = 0; j < grd->len[1]; j++) {
+			for (i = 0; i < grd->len[0]; i++) {
+				ind = j*grd->len[0] + i;
 				grd->x[ind] = startx + i*grd->hx;
 				grd->y[ind] = starty + j*grd->hy;
 			}
@@ -181,10 +201,10 @@ void grid_apply_map(grid *grd, mapping *mp)
 	t = &rst[2*grd->num_pts];
 
 	if (grd->nd == 3) {
-		for (k = 0; k < grd->nz; k++) {
-			for (j = 0; j < grd->ny; j++) {
-				for (i = 0; i < grd->nx; i++) {
-					ind = k*grd->nx*grd->ny + j*grd->nx + i;
+		for (k = 0; k < grd->len[2]; k++) {
+			for (j = 0; j < grd->len[1]; j++) {
+				for (i = 0; i < grd->len[0]; i++) {
+					ind = k*grd->len[0]*grd->len[1] + j*grd->len[0] + i;
 
 					grd->x[ind] = mp->x(r[ind], s[ind], t[ind]);
 					grd->y[ind] = mp->y(r[ind], s[ind], t[ind]);
@@ -193,10 +213,9 @@ void grid_apply_map(grid *grd, mapping *mp)
 			}
 		}
 	} else {
-		for (j = 0; j < grd->ny; j++) {
-			for (i = 0; i < grd->nx; i++) {
-				ind = j*grd->nx + i;
-
+		for (j = 0; j < grd->len[1]; j++) {
+			for (i = 0; i < grd->len[0]; i++) {
+				ind = j*grd->len[0] + i;
 				grd->x[ind] = mp->x(r[ind], s[ind], 0);
 				grd->y[ind] = mp->y(r[ind], s[ind], 0);
 			}
@@ -212,39 +231,22 @@ void grid_eval(grid *grd, func f, double *u)
 	int i, j, k, ind;
 
 	if (grd->nd == 3) {
-		for (k = 0; k < grd->nz; k++) {
-			for (j = 0; j < grd->ny; j++) {
-				for (i = 0; i < grd->nx; i++) {
-					ind = k*grd->nx*grd->ny + j*grd->nx + i;
+		for (k = 0; k < grd->len[2]; k++) {
+			for (j = 0; j < grd->len[1]; j++) {
+				for (i = 0; i < grd->len[0]; i++) {
+					ind = k*grd->len[0]*grd->len[1] + j*grd->len[0] + i;
 					u[ind] = f(grd->x[ind], grd->y[ind], grd->z[ind]);
 				}
 			}
 		}
 	} else {
-		for (j = 0; j < grd->ny; j++) {
-			for (i = 0; i < grd->nx; i++) {
-				ind = j*grd->nx + i;
+		for (j = 0; j < grd->len[1]; j++) {
+			for (i = 0; i < grd->len[0]; i++) {
+				ind = j*grd->len[0] + i;
 				u[ind] = f(grd->x[ind], grd->y[ind], 0);
 			}
 		}
 	}
-}
-
-
-void grid_print(grid *grd, double *u)
-{
-	int i, j;
-
-	for (j = 0; j < grd->ny; j++) {
-		for (i = 0; i < grd->nx; i++) {
-			if (u[j*grd->nx + i] > 0)
-				printf(" %5g  ", u[j*grd->nx + i]);
-			else
-				printf("%5g  ", u[j*grd->nx + i]);
-		}
-		printf("\n");
-	}
-	printf("\n");
 }
 
 

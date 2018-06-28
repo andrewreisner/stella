@@ -42,29 +42,29 @@ static void add_2d(boundary *bnd, grid *grd, problem *pb)
 		    && grd->cart_coord[1] == grd->num_procs[1]-1
 		    && (!grd->periodic[1])) {
 			stride = 1;
-			offset = (grd->ny-1)*grd->nx;
-			len = grd->nx;
+			offset = (grd->ibeg[1] + (grd->ny-1))*grd->len[0];
+			len = grd->len[0];
 			norm_dir = -2;
 		} else if (i == SOUTH
 		           && grd->cart_coord[1] == 0
 		           && (!grd->periodic[1])) {
 			stride = 1;
-			offset = 0;
-			len = grd->nx;
+			offset = grd->ibeg[1]*grd->len[0];
+			len = grd->len[0];
 			norm_dir = 2;
 		} else if (i == EAST
 		           && grd->cart_coord[0] == grd->num_procs[0]-1
 		           && (!grd->periodic[0])) {
-			stride = grd->nx;
-			offset = grd->nx - 1;
-			len = grd->ny;
+			stride = grd->len[0];
+			offset = grd->ibeg[0] + grd->nx - 1;
+			len = grd->len[1];
 			norm_dir = -1;
 		} else if (i == WEST
 		           && grd->cart_coord[0] == 0
 		           && (!grd->periodic[0])) {
-			stride = grd->nx;
-			offset = 0;
-			len = grd->ny;
+			stride = grd->len[0];
+			offset = grd->ibeg[0];
+			len = grd->len[1];
 			norm_dir = 1;
 		}
 
@@ -104,57 +104,57 @@ static void add_3d(boundary *bnd, grid *grd, problem *pb)
 		if (i == NORTH
 		    && grd->cart_coord[1] == grd->num_procs[1]-1
 		    && (!grd->periodic[1])) {
-			stride[0] = grd->nx*grd->ny;
+			stride[0] = grd->len[0]*grd->len[1];
 			stride[1] = 1;
-			offset = (grd->ny-1)*grd->nx;
+			offset = (grd->ibeg[1] + (grd->ny-1))*grd->len[0];
 			norm_dir = -2;
-			len[0] = grd->nz;
-			len[1] = grd->nx;
+			len[0] = grd->len[2];
+			len[1] = grd->len[0];
 		} else if (i == SOUTH
 		           && grd->cart_coord[1] == 0
 		           && (!grd->periodic[1])) {
-			stride[0] = grd->nx*grd->ny;
+			stride[0] = grd->len[0]*grd->len[1];
 			stride[1] = 1;
-			offset = 0;
+			offset = grd->ibeg[1]*grd->len[0];
 			norm_dir = 2;
-			len[0] = grd->nz;
-			len[1] = grd->nx;
+			len[0] = grd->len[2];
+			len[1] = grd->len[0];
 		} else if (i == EAST
 		           && grd->cart_coord[0] == grd->num_procs[0]-1
 		           && (!grd->periodic[0])) {
-			stride[0] = grd->nx*grd->ny;
-			stride[1] = grd->nx;
-			offset = grd->nx-1;
+			stride[0] = grd->len[0]*grd->len[1];
+			stride[1] = grd->len[0];
+			offset = grd->ibeg[0] + grd->nx - 1;
 			norm_dir = -1;
-			len[0] = grd->nz;
-			len[1] = grd->ny;
+			len[0] = grd->len[2];
+			len[1] = grd->len[1];
 		} else if (i == WEST
 		           && grd->cart_coord[0] == 0
 		           && (!grd->periodic[0])) {
-			stride[0] = grd->nx*grd->ny;
-			stride[1] = grd->nx;
-			offset = 0;
+			stride[0] = grd->len[0]*grd->len[1];
+			stride[1] = grd->len[0];
+			offset = grd->ibeg[0];
 			norm_dir = 1;
-			len[0] = grd->nz;
-			len[1] = grd->ny;
+			len[0] = grd->len[2];
+			len[1] = grd->len[1];
 		} else if (i == FRONT
 		           && grd->cart_coord[2] == grd->num_procs[2] - 1
 		           && (!grd->periodic[2])) {
-			stride[0] = grd->nx;
+			stride[0] = grd->len[0];
 			stride[1] = 1;
-			offset = (grd->nz-1)*grd->nx*grd->ny;
+			offset = (grd->ibeg[2] + (grd->nz-1))*grd->len[0]*grd->len[1];
 			norm_dir = -3;
-			len[0] = grd->ny;
-			len[1] = grd->nx;
+			len[0] = grd->len[1];
+			len[1] = grd->len[2];
 		} else if (i == BACK
 		           && grd->cart_coord[2] == 0
 		           && (!grd->periodic[2])) {
-			stride[0] = grd->nx;
+			stride[0] = grd->len[0];
 			stride[1] = 1;
-			offset = 0;
+			offset = grd->ibeg[2] * grd->len[0] * grd->len[1];
 			norm_dir = 3;
-			len[0] = grd->ny;
-			len[1] = grd->nx;
+			len[0] = grd->len[1];
+			len[1] = grd->len[0];
 		}
 
 		for (ii = 0; ii < len[0]; ii++) {

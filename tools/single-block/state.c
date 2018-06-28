@@ -3,7 +3,8 @@
 
 state *state_create(grid *grd, problem *pb)
 {
-	int i;
+	int i, j, k;
+	int ind;
 
 	state *st = (state*) malloc(sizeof(state));
 	st->rhs = (double*) malloc(grd->num_pts*sizeof(double));
@@ -18,11 +19,30 @@ state *state_create(grid *grd, problem *pb)
 	}
 
 	if (pb->id == JUMP) {
+		if (grd->nd == 2) {
+			for (j = 0; j < grd->len[1]; j++) {
+				for (i = 0; i < grd->len[0]; i++) {
+					ind = j*grd->len[0] + i;
+					if (grd->x[ind] <= 0)
+						st->eps[ind] = 4;
+					else
+						st->eps[ind] = 2;
+				}
+			}
+		} else {
+			for (k = 0; k < grd->len[2]; k++) {
+				for (j = 0; j < grd->len[1]; j++) {
+					for (i = 0; i < grd->len[0]; i++) {
+						ind = k*grd->len[0]*grd->len[1] + j*grd->len[0] + i;
+						if (grd->x[ind] <= 0)
+							st->eps[ind] = 4;
+						else
+							st->eps[ind] = 2;
+					}
+				}
+			}
+		}
 		for (i = 0; i < grd->num_pts; i++) {
-			if (grd->x[i] <= 0)
-				st->eps[i] = 4;
-			else
-				st->eps[i] = 2;
 			st->jc[i] = -5;
 		}
 	} else {

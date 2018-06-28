@@ -81,7 +81,29 @@ int main(int argc, char *argv[])
 	grid_eval(grd, pb->sol, u);
 
 	for (i = 0; i < grd->num_pts; i++)
-		diff[i] = sol->state->phi[i] - u[i];
+		diff[i] = 0;
+
+	{
+		if (grd->nd == 3) {
+			int i, j, k;
+			for (k = grd->ibeg[2]; k <= grd->iend[2]; k++) {
+				for (j = grd->ibeg[1]; j <= grd->iend[1]; j++) {
+					for (i = grd->ibeg[0]; i <= grd->iend[0]; i++) {
+						int ind = k*grd->len[1]*grd->len[0] + j*grd->len[0] + i;
+						diff[ind] = sol->state->phi[ind] - u[ind];
+					}
+				}
+			}
+		} else {
+			int i, j;
+			for (j = grd->ibeg[1]; j <= grd->iend[1]; j++) {
+				for (i = grd->ibeg[0]; i <= grd->iend[0]; i++) {
+					int ind = j*grd->len[0] + i;
+					diff[ind] = sol->state->phi[ind] - u[ind];
+				}
+			}
+		}
+	}
 
 	print_norm(diff, grd->num_pts);
 

@@ -16,8 +16,11 @@ typedef struct{
 	int    nx, ny, nz;
 	int    num_pts;
 	int    id;
-	int    is[3];
-	int    ie[3];
+	int    ibeg[3];        /** local index of first interior point */
+	int    iend[3];        /** local index of last interior point */
+	int    is[3];          /** global index of first interior point */
+	int    ie[3];          /** global index of last interior point */
+	int    len[3];         /** length of buffers for each dimension */
 	int    num_global[3];
 	int    num_local[3];
 	int    cart_coord[3];
@@ -35,9 +38,6 @@ void grid_apply_map(grid*, mapping*);
 
 
 void grid_eval(grid*, func, double*);
-
-
-void grid_print(grid*, double*);
 
 
 void grid_destroy(grid*);

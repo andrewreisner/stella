@@ -31,8 +31,8 @@ PetscErrorCode solver_init(solver *slv, grid *grd)
 	ptypes.dirichlet = DIRICHLET;
 	ptypes.neumann = NEUMANN;
 
-	for (i = 0; i < 3; i++) offset[i] = 0;
-	stride[0] = grd->nx; stride[1] = grd->ny; stride[2] = grd->nz;
+	for (i = 0; i < 3; i++) offset[i] = grd->ibeg[i];
+	stride[0] = grd->len[0]; stride[1] = grd->len[1]; stride[2] = grd->len[2];
 
 	ierr = PetscInitialize(NULL, NULL, "PETScOptions.txt", NULL);CHKERRQ(ierr);
 	int overlap_periodic = 1;

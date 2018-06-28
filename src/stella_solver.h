@@ -64,6 +64,9 @@ typedef struct {
 	int ts; /**< Timestep (only used for logging). */
 } stella;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Initializes structured elliptic solver
@@ -170,5 +173,9 @@ PetscErrorCode stella_setup_op(stella*);
  * Destroys data structures owned by the elliptic discretization
  */
 PetscErrorCode stella_cleanup(stella*);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
