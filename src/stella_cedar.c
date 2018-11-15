@@ -1,4 +1,5 @@
 #include "stella_cedar.h"
+#ifdef WITH_CEDAR
 
 
 void cedar_copyto(const double *src, cedar_vec dst)
@@ -67,3 +68,5 @@ void cedar_copyfrom(cedar_vec src, double *dst)
 		}
 	}
 }
+
+#endif

@@ -10,10 +10,10 @@ const char *problem_name[NUM_PROBLEMS] = {"Multigrid Tutorial", "Mixed Boundarie
                                           "Mixed Boundaries 1", "Mixed Boundaries 2",
                                           "Sine", "Translated Sine",
                                           "Rotation", "Electrode", "Jump",
-                                          "Axisymmetric", "Periodic", "Checkerboard"};
+                                          "Axisymmetric", "Periodic", "Checkerboard", "Jump Sine"};
 const char *problem_key[NUM_PROBLEMS] = {"tutorial", "mixed", "mixed1", "mixed2", "sin",
                                          "tsine", "rotation",
-                                         "electrode", "jump","axisymmetric", "periodic", "cboard"};
+                                         "electrode", "jump","axisymmetric", "periodic", "cboard", "jsine"};
 
 double electrode_rhs(double x, double y, double z)
 {
@@ -269,6 +269,23 @@ double cboard_rhs(double x, double y, double z){
         return 64;
 }
 
+double jump_sin_rhs(double x, double y, double z)
+{
+    if (x <= 0)
+	   return 25*(M_PI*M_PI)*sin(M_PI*x)*sin(2*M_PI*y);
+    else
+        return 16*(M_PI*M_PI)*sin(2*M_PI*x)*sin(2*M_PI*y);
+}
+
+
+double jump_sin_sol(double x, double y, double z)
+{
+    if (x <= 0)
+	   return sin(M_PI*x)*sin(2*M_PI*y);
+    else
+        return sin(2*M_PI*x)*sin(2*M_PI*y);
+}
+
 problem *problem_create(problem_id id, int nd, int map_id)
 {
 	problem *pb = (problem*) malloc(sizeof(problem));
@@ -466,6 +483,18 @@ problem *problem_create(problem_id id, int nd, int map_id)
     case (CBOARD):
     	pb->rhs = &cboard_rhs;
     	pb->sol = &cboard_sol;
+    	pb->boundary[NORTH] = DIRICHLET;
+    	pb->boundary[SOUTH] = DIRICHLET;
+    	pb->boundary[EAST] =  DIRICHLET;
+    	pb->boundary[WEST] =  DIRICHLET;
+    	if (nd == 3) {
+    		pb->boundary[FRONT] =  DIRICHLET;
+    		pb->boundary[BACK] =  DIRICHLET;
+    	}
+    	break;
+    case (JSINE):
+    	pb->rhs = &jump_sin_rhs;
+    	pb->sol = &jump_sin_sol;
     	pb->boundary[NORTH] = DIRICHLET;
     	pb->boundary[SOUTH] = DIRICHLET;
     	pb->boundary[EAST] =  DIRICHLET;

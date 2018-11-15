@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include "state.h"
 
 state *state_create(grid *grd, problem *pb)
@@ -112,6 +113,21 @@ state *state_create(grid *grd, problem *pb)
 					}
 				}
 			}
+		}
+	} else if (pb->id == JSINE) {
+		if (grd->nd == 2) {
+			for (j = 0; j < grd->len[1]; j++) {
+				for (i = 0; i < grd->len[0]; i++) {
+					ind = j*grd->len[0] + i;
+					if (grd->x[ind] <= 0)
+						st->eps[ind] = 5;
+					else
+						st->eps[ind] = 2;
+				}
+			}
+		}
+		for (i = 0; i < grd->num_pts; i++) {
+			st->jc[i] = -sin(2*M_PI*grd->y[i])*M_PI;
 		}
 	} else {
 		for (i = 0; i < grd->num_pts; i++) {
