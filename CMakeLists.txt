@@ -13,17 +13,15 @@ option(ENABLE_CEDAR "Enable Cedar solver" OFF)
 
 enable_language(C CXX Fortran)
 
+find_package(PETSc REQUIRED)
+
 set(req-lib ${PETSC_LIBRARIES} m)
 set(req-inc ${PETSC_INCLUDES})
 set(req-def "")
 
-find_package(PETSc REQUIRED)
-list(APPEND req-def PETSC_OPTIONS_TAKES_DATABASE)
-# if(PETSC_VERSION)
-#   if(NOT (${PETSC_VERSION} VERSION_LESS 3.7.0))
-# 	list(APPEND req-def PETSC_OPTIONS_TAKES_DATABASE)
-#   endif()
-# endif()
+if(NOT (${PETSC_VERSION} VERSION_LESS 3.7.0))
+  list(APPEND req-def PETSC_OPTIONS_TAKES_DATABASE)
+endif()
 
 if(AutodetectMPI)
   find_package(MPI REQUIRED)
