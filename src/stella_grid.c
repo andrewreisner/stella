@@ -54,10 +54,13 @@ static PetscErrorCode setup_2d(stella_grid *grid, DM *dm, MPI_Comm comm, int nGl
 	for (i = 0; i < 2; i++) {
 		if (periodic[i] && grid->overlap_periodic) {
 			nGlobal[i]--;
-			if (i == 0)
+			if (i == 0) {
 				nPerProcx[nProcs[0]-1]--;
-			else
+				nPerProcx_uint[nProcs[0]-1]--;
+			} else {
 				nPerProcy[nProcs[1]-1]--;
+				nPerProcy_uint[nProcs[1]-1]--;
+			}
 		}
 	}
 
@@ -155,12 +158,16 @@ static PetscErrorCode setup_3d(stella_grid *grid, DM *dm, MPI_Comm comm, int nGl
 	for (i = 0; i < 3; i++) {
 		if (periodic[i] && grid->overlap_periodic) {
 			nGlobal[i]--;
-			if (i == 0)
+			if (i == 0) {
 				nPerProcx[nProcs[0]-1]--;
-			else if (i == 1)
+				nPerProcx_uint[nProcs[0]-1]--;
+			} else if (i == 1) {
 				nPerProcy[nProcs[1]-1]--;
-			else
+				nPerProcy_uint[nProcs[1]-1]--;
+			} else {
 				nPerProcz[nProcs[2]-1]--;
+				nPerProcz_uint[nProcs[2]-1]--;
+			}
 		}
 	}
 
