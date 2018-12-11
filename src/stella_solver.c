@@ -295,7 +295,10 @@ PetscErrorCode stella_solve(stella *slv)
 
 	// Temporarily signal bcs have changed to be safe
 	ierr = stella_changed_bc(slv);CHKERRQ(ierr);
-	ierr = VecSet(slv->x, 0);CHKERRQ(ierr);
+	// Reuse previous solution at subsequent iteration
+	if(slv->ts == 1) {
+		ierr = VecSet(slv->x, 0);CHKERRQ(ierr);
+	}
 	if (!slv->options.algebraic && cedar_direct) {
 		PC bmg_pc;
 		ierr = KSPGetPC(slv->ksp, &bmg_pc);CHKERRQ(ierr);
