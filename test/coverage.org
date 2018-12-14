@@ -12,6 +12,6 @@
 | Periodic                  |                   | Periodic      |
 | Electrode                 | Electrode         |               |
 | Jump                      | Jump              | Jump3         |
-| Discontinous Coefficient  | Checkerboard      | Checkerboard3 |
+| Discontinous Coefficient  | Checkerboard      | JumpSine3     |
 | Mesh Anisotropy (Warping) | Warping           | Warping3      |
 | Mesh Anisotropy (Annulus) | HalfAnnulus       | Periodic      |

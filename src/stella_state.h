@@ -8,7 +8,7 @@
  */
 typedef struct {
 	double *phi;
-	double *jump;
+	double *jump[3];
 	double *dcoef;
 	double *bcoef;
 	double *rhs;

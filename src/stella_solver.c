@@ -326,14 +326,16 @@ PetscErrorCode stella_solve(stella *slv)
 
 
 PetscErrorCode stella_set_external(stella *slv, double phi[], double dcoef[],
-                                   double bcoef[], double jump[])
+                                   double bcoef[], double jump_x[], double jump_y[], double jump_z[])
 {
 	PetscErrorCode ierr;
 
 	slv->state.phi = phi;
 	slv->state.dcoef = dcoef;
 	slv->state.bcoef = bcoef;
-	slv->state.jump = jump;
+	slv->state.jump[0] = jump_x;
+	slv->state.jump[1] = jump_y;
+	slv->state.jump[2] = jump_z;
 	slv->state.sol = NULL;
 
 	ierr = stella_store_external_array(slv, slv->state.dcoef, slv->level.dcoef);CHKERRQ(ierr);

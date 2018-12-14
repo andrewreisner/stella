@@ -43,7 +43,7 @@ PetscErrorCode solver_init(solver *slv, grid *grd)
 	                   slv->axisymmetric);CHKERRQ(ierr);
 	ierr = stella_set_grid(slv->ptr, grd->is, grd->ie, grd->num_pts, grd->xyz);CHKERRQ(ierr);
 	ierr = stella_set_external(slv->ptr, slv->state->phi, slv->state->eps,
-	                           slv->state->debye, slv->state->jc);CHKERRQ(ierr);
+	                           slv->state->debye, slv->state->jump[0], slv->state->jump[1], slv->state->jump[2]);CHKERRQ(ierr);
 	ierr = stella_set_sol(slv->ptr, slv->state->sol);CHKERRQ(ierr);
 	ierr = stella_set_boundary(slv->ptr, ptypes, classify, norm_dir, values);CHKERRQ(ierr);
 

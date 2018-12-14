@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
 	option options = parse_options(argc, argv);
 
-	if (options.problem == JUMP || options.problem == CBOARD) {
+	if (options.problem == JUMP || options.problem == CBOARD || options.problem == JSINE) {
 		grd = grid_create(-1, 1, options.nx,
 		                  -1, 1, options.ny,
 		                  -1, 1, options.nz);

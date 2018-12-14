@@ -27,6 +27,8 @@ typedef struct {
 	problem_id id;
 	func rhs;
 	func sol;
+	func eps;
+	func jc[3];
 	int nd;
 	int boundary[6];
 	electrode *holes;

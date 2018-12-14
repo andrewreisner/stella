@@ -281,10 +281,160 @@ double jump_sin_rhs(double x, double y, double z)
 double jump_sin_sol(double x, double y, double z)
 {
     if (x <= 0)
-	   return sin(M_PI*x)*sin(2*M_PI*y);
+        return sin(M_PI*x)*sin(2*M_PI*y);
     else
         return sin(2*M_PI*x)*sin(2*M_PI*y);
 }
+
+double jump_sin_rhs_3d(double x, double y, double z)
+{
+    if (x > 0 && y >= 0 && z >= 0)
+	   return 27*(M_PI*M_PI)*sin(2*M_PI*x)*sin(2*M_PI*y)*sin(M_PI*z);
+    else if (x <= 0 && y >= 0 && z >= 0)
+        return 6*(M_PI*M_PI)*sin(M_PI*x)*sin(2*M_PI*y)*sin(M_PI*z);
+    else if (x <= 0 && y < 0 && z >= 0)
+        return 9*(M_PI*M_PI)*sin(M_PI*x)*sin(M_PI*y)*sin(M_PI*z);
+    else if (x > 0 && y < 0 && z >= 0)
+        return 6*(M_PI*M_PI)*sin(2*M_PI*x)*sin(M_PI*y)*sin(M_PI*z);
+    else if (x > 0 && y >= 0 && z < 0)
+        return 84*(M_PI*M_PI)*sin(2*M_PI*x)*sin(2*M_PI*y)*sin(2*M_PI*z);
+    else if (x <= 0 && y >= 0 && z < 0)
+        return 45*(M_PI*M_PI)*sin(M_PI*x)*sin(2*M_PI*y)*sin(2*M_PI*z);
+    else if (x <= 0 && y < 0 && z < 0)
+        return 42*(M_PI*M_PI)*sin(M_PI*x)*sin(M_PI*y)*sin(2*M_PI*z);
+    else
+        return 45*(M_PI*M_PI)*sin(2*M_PI*x)*sin(M_PI*y)*sin(2*M_PI*z);
+}
+
+
+double jump_sin_sol_3d(double x, double y, double z)
+{
+    if (x > 0 && y >= 0 && z >= 0)
+	   return sin(2*M_PI*x)*sin(2*M_PI*y)*sin(M_PI*z);
+    else if (x <= 0 && y >= 0 && z >= 0)
+        return sin(M_PI*x)*sin(2*M_PI*y)*sin(M_PI*z);
+    else if (x <= 0 && y < 0 && z >= 0)
+        return sin(M_PI*x)*sin(M_PI*y)*sin(M_PI*z);
+    else if (x > 0 && y < 0 && z >= 0)
+        return sin(2*M_PI*x)*sin(M_PI*y)*sin(M_PI*z);
+    else if (x > 0 && y >= 0 && z < 0)
+        return sin(2*M_PI*x)*sin(2*M_PI*y)*sin(2*M_PI*z);
+    else if (x <= 0 && y >= 0 && z < 0)
+        return sin(M_PI*x)*sin(2*M_PI*y)*sin(2*M_PI*z);
+    else if (x <= 0 && y < 0 && z < 0)
+        return sin(M_PI*x)*sin(M_PI*y)*sin(2*M_PI*z);
+    else
+        return sin(2*M_PI*x)*sin(M_PI*y)*sin(2*M_PI*z);
+}
+
+double eps(double x, double y, double z)
+{
+    return 1.0;
+}
+
+double jump(double x, double y, double z)
+{
+    return 0;
+}
+
+double jump_eps(double x, double y, double z)
+{
+    if (x <= 0)
+        return 4;
+    else
+        return 2;
+}
+
+double jump_jc(double x, double y, double z)
+{
+    return -5;
+}
+
+double cboard_eps(double x, double y, double z)
+{
+    if ((x <= 0 && y < 0) || (x > 0 && y >= 0))
+        return 2;
+    else
+        return 4;
+}
+
+double cboard_jc_x(double x, double y, double z)
+{
+    if (y >= 0)
+        return -5;
+    else
+        return 9.5;
+}
+
+double cboard_jc_y(double x, double y, double z)
+{
+    if (x < 0)
+        return 5;
+    else
+        return -9.5;
+}
+
+double jsine_eps(double x, double y, double z)
+{
+    if (x <= 0)
+        return 5;
+    else
+        return 2;
+}
+
+double jsine_eps_3d(double x, double y, double z)
+{
+    if ((x > 0 && y >= 0 && z >= 0) || (x <= 0 && y < 0 && z >= 0))
+        return 3;
+    else if ((x <= 0 && y >= 0 && z >= 0) || (x > 0 && y < 0 && z >= 0))
+        return 1;
+    else if ((x > 0 && y >= 0 && z < 0) || (x <= 0 && y < 0 && z < 0))
+        return 7;
+    else
+        return 5;
+}
+
+double jsine_jc(double x, double y, double z)
+{
+    return -sin(2*M_PI*y)*M_PI;
+}
+
+double jsine_jc_x_3d(double x, double y, double z)
+{
+    if (y >= 0 && z >= 0)
+        return 5*M_PI*sin(2*M_PI*y)*sin(M_PI*z);
+    else if (y < 0 && z >= 0)
+        return -M_PI*sin(M_PI*y)*sin(M_PI*z);
+    else if (y >= 0 && z < 0)
+        return 9*M_PI*sin(2*M_PI*y)*sin(2*M_PI*z);
+    else
+        return 3*M_PI*sin(M_PI*y)*sin(2*M_PI*z);
+}
+
+double jsine_jc_y_3d(double x, double y, double z)
+{
+    if (x > 0 && z >= 0)
+        return 5*M_PI*sin(2*M_PI*x)*sin(M_PI*z);
+    else if (x <= 0 && z >= 0)
+        return -M_PI*sin(M_PI*x)*sin(M_PI*z);
+    else if (x > 0 && z < 0)
+        return 9*M_PI*sin(2*M_PI*x)*sin(2*M_PI*z);
+    else
+        return 3*M_PI*sin(M_PI*x)*sin(2*M_PI*z);
+}
+
+double jsine_jc_z_3d(double x, double y, double z)
+{
+    if (x > 0 && y >= 0)
+        return -11*M_PI*sin(2*M_PI*x)*sin(2*M_PI*y);
+    else if (x > 0 && y < 0)
+        return -9*M_PI*sin(2*M_PI*x)*sin(M_PI*y);
+    else if (x <= 0 && y >= 0)
+        return -9*M_PI*sin(M_PI*x)*sin(2*M_PI*y);
+    else
+        return -11*M_PI*sin(M_PI*x)*sin(M_PI*y);
+}
+
 
 problem *problem_create(problem_id id, int nd, int map_id)
 {
@@ -310,6 +460,11 @@ problem *problem_create(problem_id id, int nd, int map_id)
 		pb->holes[1].rel_size[1] = 1.0 / 16.0;
 		pb->holes[1].rel_offset[0] = .75;
 		pb->holes[1].rel_offset[1] = .75;
+
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 
 		if (nd == 2) {
 			pb->rhs = &electrode_rhs;
@@ -351,6 +506,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
         pb->boundary[SOUTH] = DIRICHLET;
         pb->boundary[EAST] =  DIRICHLET;
         pb->boundary[WEST] =  DIRICHLET;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
         if (nd == 3) {
             pb->rhs = &mtut_rhs_3d;
     		pb->sol = &mtut_sol_3d;
@@ -364,6 +523,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
 		pb->boundary[SOUTH] = DIRICHLET;
 		pb->boundary[EAST] =  DIRICHLET;
 		pb->boundary[WEST] =  DIRICHLET;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		if (nd == 3) {
 			if (map_id == MAP_POLAR) {
 				pb->rhs = &polar_sin_rhs_3d;
@@ -389,6 +552,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
 		pb->boundary[SOUTH] = DIRICHLET;
 		pb->boundary[EAST] =  DIRICHLET;
 		pb->boundary[WEST] =  DIRICHLET;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		if (map_id == MAP_POLAR) {
 			pb->sol = &polar_tsin_sol;
 			pb->rhs = &polar_tsin_rhs;
@@ -405,6 +572,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
 		}
 		break;
 	case (MIXED):
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		if (nd == 2) {
 			pb->rhs = &mixed_rhs;
 			pb->sol = &mixed_sol;
@@ -427,6 +598,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
 	case(MIXED_1):
 		pb->rhs = &mixed1_rhs;
 		pb->sol = &mixed1_sol;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		pb->boundary[NORTH] = NEUMANN;
 		pb->boundary[SOUTH] = NEUMANN;
 		pb->boundary[EAST] =  NEUMANN;
@@ -435,6 +610,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
 	case(MIXED_2):
 		pb->rhs = &mixed2_rhs;
 		pb->sol = &mixed2_sol;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		pb->boundary[NORTH] = NEUMANN;
 		pb->boundary[SOUTH] = NEUMANN;
 		pb->boundary[EAST] =  DIRICHLET;
@@ -443,6 +622,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
 	case (ROT):
 		pb->rhs = &rot_rhs;
 		pb->sol = &rot_sol;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		pb->boundary[NORTH] = DIRICHLET;
 		pb->boundary[SOUTH] = DIRICHLET;
 		pb->boundary[EAST] =  DIRICHLET;
@@ -451,6 +634,11 @@ problem *problem_create(problem_id id, int nd, int map_id)
 	case (JUMP):
 		pb->rhs = &jump_rhs;
 		pb->sol = &jump_sol;
+        pb->eps = &jump_eps;
+        pb->jc[0] = &jump_jc;
+        for (int i = 1; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		pb->boundary[NORTH] = DIRICHLET;
 		pb->boundary[SOUTH] = DIRICHLET;
 		pb->boundary[EAST] =  DIRICHLET;
@@ -463,6 +651,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
 	case (AXISYMMETRIC):
 		pb->rhs = &axisymmetric_rhs;
 		pb->sol = &axisymmetric_sol;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		pb->boundary[NORTH] = DIRICHLET;
 		pb->boundary[SOUTH] = DIRICHLET;
 		pb->boundary[EAST] =  DIRICHLET;
@@ -471,6 +663,10 @@ problem *problem_create(problem_id id, int nd, int map_id)
 	case (PERIODIC):
 		pb->rhs = &polar_tsin_rhs;
 		pb->sol = &polar_tsin_sol;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		pb->boundary[EAST] =  DIRICHLET;
 		pb->boundary[WEST] =  DIRICHLET;
 		pb->boundary[FRONT] = DIRICHLET;
@@ -479,10 +675,18 @@ problem *problem_create(problem_id id, int nd, int map_id)
 	default:
 		pb->rhs = &mtut_rhs;
 		pb->sol = &mtut_sol;
+        pb->eps = &eps;
+        for (int i = 0; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
 		break;
     case (CBOARD):
     	pb->rhs = &cboard_rhs;
     	pb->sol = &cboard_sol;
+        pb->eps = &cboard_eps;
+        pb->jc[0] = &cboard_jc_x;
+        pb->jc[1] = &cboard_jc_y;
+        pb->jc[2] = &jump;
     	pb->boundary[NORTH] = DIRICHLET;
     	pb->boundary[SOUTH] = DIRICHLET;
     	pb->boundary[EAST] =  DIRICHLET;
@@ -495,11 +699,22 @@ problem *problem_create(problem_id id, int nd, int map_id)
     case (JSINE):
     	pb->rhs = &jump_sin_rhs;
     	pb->sol = &jump_sin_sol;
+        pb->eps = &jsine_eps;
+        pb->jc[0] = &jsine_jc;
+        for (int i = 1; i < 3; i++) {
+            pb->jc[i] = &jump;
+        }
     	pb->boundary[NORTH] = DIRICHLET;
     	pb->boundary[SOUTH] = DIRICHLET;
     	pb->boundary[EAST] =  DIRICHLET;
     	pb->boundary[WEST] =  DIRICHLET;
     	if (nd == 3) {
+            pb->rhs = &jump_sin_rhs_3d;
+        	pb->sol = &jump_sin_sol_3d;
+            pb->eps = &jsine_eps_3d;
+            pb->jc[0] = &jsine_jc_x_3d;
+            pb->jc[1] = &jsine_jc_y_3d;
+            pb->jc[2] = &jsine_jc_z_3d;
     		pb->boundary[FRONT] =  DIRICHLET;
     		pb->boundary[BACK] =  DIRICHLET;
     	}

@@ -103,10 +103,12 @@ PetscErrorCode stella_solve(stella*);
  * @param[out] phi array where solver will put the solution
  * @param[in] dcoef variable coefficient for elliptic operator (- div dcoef grad phi)
  * @param[in] bcoef diagonal contribution (- div dcoef grad phi - bcoef)
- * @param[in] jump interface condition ([n . dcoef grad phi] = jump).  Interface must be grid aligned.
+ * @param[in] jump interface condition - x ([n . dcoef grad phi] = jump).  Interface must be grid aligned.
+ * @param[in] jump interface condition - y ([n . dcoef grad phi] = jump).  Interface must be grid aligned.
+ * @param[in] jump interface condition - z ([n . dcoef grad phi] = jump).  Interface must be grid aligned.
  */
 PetscErrorCode stella_set_external(stella *slv, double phi[], double dcoef[],
-                                   double bcoef[], double jump[]);
+                                   double bcoef[], double jump_x[], double jump_y[], double jump_z[]);
 
 /**
  * Sets solver rhs.

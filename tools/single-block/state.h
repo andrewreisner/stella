@@ -9,12 +9,13 @@ extern "C" {
 #endif
 
 typedef struct {
-	double *jc;
 	double *phi;
 	double *rhs;
-	double *eps;
 	double *debye;
 	double *sol;
+	double *eps;
+	double *jump[3];
+
 } state;
 
 state *state_create(grid*, problem*);

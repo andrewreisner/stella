@@ -306,56 +306,6 @@ TEST(Models3, Jump)
 		}
 }
 
-// TEST(Models3, Cboard)
-// {
-// 	int size;
-// 	MPI_Comm_size(MPI_COMM_WORLD, &size);
-// 	if (size == 1) {
-// 		std::vector<double> norms;
-// 		std::vector<double> hs;
-// 		std::array<int, 2> nvals = {40, 80};
-// 		double tol = 1e-1;
-//
-// 		for (int k = 0; k < 2; k++) {
-// 			int i, ierr;
-//
-// 			auto nx = nvals[k];
-//
-// 			hs.push_back(2.0/(nx-1));
-//
-// 			grid *grd = grid_create(-1, 1, nx,
-// 			                        -1, 1, nx,
-// 			                        -1, 1, nx);
-// 			problem *pb = problem_create(CBOARD, 3, 0);
-// 			solver *sol = solver_create(grd, pb);
-//
-// 			ierr = solver_init(sol, grd);
-// 			ASSERT_EQ(ierr, 0);
-// 			ierr = solver_run(sol);
-// 			ASSERT_EQ(ierr, 0);
-//
-// 			double *u = new double[grd->num_pts];
-// 			grid_eval(grd, pb->sol, u);
-//
-// 			double nrm = mpi_norm(grd, sol->state->phi, u);
-// 			norms.push_back(nrm);
-//
-// 			problem_destroy(pb); free(pb);
-// 			ierr = solver_destroy(sol); free(sol);
-// 			ASSERT_EQ(ierr, 0);
-// 			grid_destroy(grd); free(grd);
-// 			delete[] u;
-// 		}
-//
-// 		int rank;
-// 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-// 		if (rank == 0) {
-// 			double order = estimate_order(hs, norms);
-// 			ASSERT_GT(order, 2 - tol);
-// 		}
-// 	}
-// }
-
 TEST(Models, Warping) {
 	std::vector<double> norms;
 	std::vector<double> hs;
@@ -396,6 +346,52 @@ TEST(Models, Warping) {
 		delete[] u;
 
 		nx = (nx-1)*2 + 1;
+	}
+
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	if (rank == 0) {
+		double order = estimate_order(hs, norms);
+		ASSERT_GT(order, 2 - tol);
+	}
+}
+
+TEST(Models3, JumpSine)
+{
+	std::vector<double> norms;
+	std::vector<double> hs;
+	std::array<int, 2> nvals = {40, 80};
+	double tol = 1e-1;
+
+	for (int k = 0; k < 2; k++) {
+		int i, ierr;
+
+		auto nx = nvals[k];
+
+		hs.push_back(2.0/(nx-1));
+
+		grid *grd = grid_create(-1, 1, nx,
+		                        -1, 1, nx,
+		                        -1, 1, nx);
+		problem *pb = problem_create(JSINE, 3, 0);
+		solver *sol = solver_create(grd, pb);
+
+		ierr = solver_init(sol, grd);
+		ASSERT_EQ(ierr, 0);
+		ierr = solver_run(sol);
+		ASSERT_EQ(ierr, 0);
+
+		double *u = new double[grd->num_pts];
+		grid_eval(grd, pb->sol, u);
+
+		double nrm = mpi_norm(grd, sol->state->phi, u);
+		norms.push_back(nrm);
+
+		problem_destroy(pb); free(pb);
+		ierr = solver_destroy(sol); free(sol);
+		ASSERT_EQ(ierr, 0);
+		grid_destroy(grd); free(grd);
+		delete[] u;
 	}
 
 	int rank;
