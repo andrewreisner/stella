@@ -12,8 +12,8 @@ static PetscErrorCode update_dirichlet_sym(stella_bc *bc, Mat A, DM da)
 	PetscErrorCode ierr;
 	PetscInt i,j,cnt;
 	PetscInt ngx, ngy;
-	PetscScalar v[9];
-	MatStencil row[9], col;
+	PetscScalar v[13];
+	MatStencil row[13], col;
 	stella_classify *cls = bc->level->classify;
 	char **classify;
 
@@ -24,7 +24,7 @@ static PetscErrorCode update_dirichlet_sym(stella_bc *bc, Mat A, DM da)
 	char dirichlet = cls->ptypes.dirichlet;
 	ierr = stella_classify_get(cls, &classify);CHKERRQ(ierr);
 
-	for (i = 0; i < 8; i++) v[i] = 0;
+	for (i = 0; i < 13; i++) v[i] = 0;
 
 	for (j = ys; j < ys + ym; j++) {
 		for (i = xs; i < xs + xm; i++) {
@@ -96,8 +96,8 @@ static PetscErrorCode update_dirichlet_sym_3d(stella_bc *bc, Mat A, DM da)
 	PetscErrorCode ierr;
 	PetscInt i, j, k, cnt;
 	PetscInt ngx, ngy, ngz;
-	PetscScalar v[64];
-	MatStencil row[64], col;
+	PetscScalar v[31];
+	MatStencil row[31], col;
 	stella_classify *cls = bc->level->classify;
 	char ***classify;
 
@@ -108,7 +108,7 @@ static PetscErrorCode update_dirichlet_sym_3d(stella_bc *bc, Mat A, DM da)
 	char dirichlet = cls->ptypes.dirichlet;
 	ierr = stella_classify_get(cls, &classify);CHKERRQ(ierr);
 
-	for (i = 0; i < 19; i++) v[i] = 0;
+	for (i = 0; i < 31; i++) v[i] = 0;
 	for (k = zs; k < zs + zm; k++) {
 		for (j = ys; j < ys + ym; j++) {
 			for (i = xs; i < xs + xm; i++) {
@@ -262,8 +262,8 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 	Vec lc;
 	PetscInt i,j,cnt;
 	PetscInt ngx, ngy;
-	PetscScalar v[9];
-	MatStencil row, col[9];
+	PetscScalar v[13];
+	MatStencil row, col[13];
 	MatType mtype;
 	PetscBool is_cedar;
 	PetscScalar **acont;
@@ -414,8 +414,8 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 	PetscErrorCode ierr;
 	PetscInt i,j,k,cnt;
 	PetscInt ngx, ngy, ngz;
-	PetscScalar v[19];
-	MatStencil row, col[19];
+	PetscScalar v[37];
+	MatStencil row, col[37];
 	MatType mtype;
 	PetscBool is_cedar;
 	double dcoefh[19];

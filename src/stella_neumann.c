@@ -11,8 +11,8 @@ static PetscErrorCode apply_neumann(stella_bc *bc, Mat A, DM da)
 {
 	PetscErrorCode ierr;
 	PetscInt i,j,k,ngx,ngy;
-	PetscScalar v[6];
-	MatStencil row, col[6];
+	PetscScalar v[9];
+	MatStencil row, col[9];
 	PetscScalar **dcoef;
 	PetscScalar **bcoef;
 	PetscScalar **coef[5];
@@ -202,9 +202,9 @@ static PetscErrorCode apply_neumann_3d(stella_bc *bc, Mat A, DM da)
 {
 	PetscErrorCode ierr;
 	PetscInt i,j,k,ngx,ngy,ngz;
-	PetscScalar v[19];
+	PetscScalar v[27];
 	PetscInt cnt;
-	MatStencil row, col[19];
+	MatStencil row, col[27];
 	MatType mtype;
 	PetscBool is_cedar;
 	double dcoefh[19];
