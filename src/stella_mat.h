@@ -12,6 +12,7 @@ typedef struct
 	cedar_mat so;
 	cedar_vec solvec;
 	cedar_vec rhsvec;
+	cedar_config conf;
 } stella_bmg_mat;
 #endif
 

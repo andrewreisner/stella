@@ -33,27 +33,9 @@ PetscErrorCode stella_pc_setup(PC pc)
 	pc_ctx->nd = mat_ctx->nd;
 	pc_ctx->solvec = mat_ctx->solvec;
 	pc_ctx->rhsvec = mat_ctx->rhsvec;
-    
+
 	int cedar_err;
-	cedar_config conf;
-
-	/***********************************/
-	// HERE WE NEED TO HAVE THE MESH ID
-	size_t meshid = 0;
-	/***********************************/
-
-	char fname[19];
-	sprintf(fname, "config-mesh%zu.json", meshid);
-
-	cedar_err = cedar_config_create(fname, &conf);
-	if (cedar_err == CEDAR_ERR_FNAME) {
-		char err_str[80];
-		sprintf(err_str, "Cedar config not found: %s - Falling back to config.json.", fname);
-		stella_io_print(PETSC_COMM_WORLD, err_str);
-		cedar_config_create("config.json", &conf);
-	}
-
-	cedar_err = cedar_solver_create(mat_ctx->so, conf, &pc_ctx->solver);chkerr(cedar_err);
+	cedar_err = cedar_solver_create(mat_ctx->so, mat_ctx->conf, &pc_ctx->solver);chkerr(cedar_err);
 
 	if (cedar_err) {
 		SETERRQ1(PETSC_COMM_WORLD, PETSC_ERR_LIB, "Cedar error code: %d", cedar_err);

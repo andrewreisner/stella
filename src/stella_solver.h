@@ -61,6 +61,7 @@ typedef struct {
 	stella_boundary *boundary;
 	stella_fd *fd;
 	int num_patches;
+	char *cedar_config_filename;
 	int ts; /**< Timestep (only used for logging). */
 } stella;
 
@@ -151,6 +152,16 @@ PetscErrorCode stella_set_grid(stella *slv, int is[], int ie[], int num_cells, d
  */
 PetscErrorCode stella_set_boundary(stella *slv, stella_ptypes ptypes,
                                    char classify[], char norms[], double values[]);
+
+
+/**
+ * Set cedar config filename
+ *
+ * @param slv solver object
+ * @param fname Cedar config file name
+ */
+
+PetscErrorCode stella_set_cedar_config(stella *slv, char fname[]);
 
 
 /**
