@@ -47,9 +47,10 @@ PetscErrorCode stella_pc_setup(PC pc)
 
 	cedar_err = cedar_config_create(fname, &conf);
 	if (cedar_err == CEDAR_ERR_FNAME) {
-		char err_str[48];
-		sprintf(err_str, "Cedar config not found: %s", fname);
+		char err_str[80];
+		sprintf(err_str, "Cedar config not found: %s - Falling back to config.json.", fname);
 		stella_io_print(PETSC_COMM_WORLD, err_str);
+		cedar_config_create("config.json", &conf);
 	}
 
 	cedar_err = cedar_solver_create(mat_ctx->so, conf, &pc_ctx->solver);chkerr(cedar_err);
