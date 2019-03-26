@@ -147,12 +147,14 @@ static PetscErrorCode update_solution(stella *slv)
 	return 0;
 }
 
+#ifdef WITH_CEDAR
 /**
  * Sets a custom cedar config file name. If not set, stella defaults to config.json.
  */
 PetscErrorCode stella_set_cedar_config(stella *slv, char fname[]) {
 	slv->cedar_config_filename = fname;
 }
+#endif
 
 
 /**

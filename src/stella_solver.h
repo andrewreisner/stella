@@ -156,6 +156,7 @@ PetscErrorCode stella_set_boundary(stella *slv, stella_ptypes ptypes,
                                    char classify[], char norms[], double values[]);
 
 
+#ifdef WITH_CEDAR
 /**
  * Set cedar config filename
  *
@@ -164,6 +165,7 @@ PetscErrorCode stella_set_boundary(stella *slv, stella_ptypes ptypes,
  */
 
 PetscErrorCode stella_set_cedar_config(stella *slv, char fname[]);
+#endif
 
 
 /**
