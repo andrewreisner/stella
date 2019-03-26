@@ -61,9 +61,6 @@ typedef struct {
 	stella_boundary *boundary;
 	stella_fd *fd;
 	int num_patches;
-	#ifdef WITH_CEDAR
-	char *cedar_config_filename;
-	#endif
 	int ts; /**< Timestep (only used for logging). */
 } stella;
 

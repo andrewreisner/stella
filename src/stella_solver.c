@@ -152,7 +152,23 @@ static PetscErrorCode update_solution(stella *slv)
  * Sets a custom cedar config file name. If not set, stella defaults to config.json.
  */
 PetscErrorCode stella_set_cedar_config(stella *slv, char fname[]) {
-	slv->cedar_config_filename = fname;
+	PetscErrorCode ierr;
+	MatType mtype;
+	PetscBool is_cedar;
+	stella_bmg_mat *mat_ctx;
+	int cedar_err;
+
+	ierr = MatGetType(slv->A, &mtype);
+	ierr = PetscStrcmp(mtype, MATSHELL, &is_cedar);CHKERRQ(ierr);
+	if (is_cedar) {
+		ierr = MatShellGetContext(slv->A, (void**)&mat_ctx);CHKERRQ(ierr);
+		cedar_err = cedar_config_create(fname, &mat_ctx->conf);
+		if (cedar_err == CEDAR_ERR_FNAME) {
+			char err_str[80];
+			sprintf(err_str, "Cedar config not found: %s", fname);
+			stella_io_print(PETSC_COMM_WORLD, err_str);
+		}
+	}
 }
 #endif
 
@@ -248,20 +264,7 @@ static PetscErrorCode stella_setup(stella *slv, int offset[], int stride[])
 		}
 		ierr = MatShellSetOperation(slv->A, MATOP_MULT, (void(*)(void)) stella_bmg_mult);CHKERRQ(ierr);
 
-		// If not custom cedar config filename was set fall back to config.json
-		if(slv->cedar_config_filename == NULL || strlen(slv->cedar_config_filename) == 0)
-			cedar_err = cedar_config_create("config.json", &mat_ctx->conf);
-		else
-			cedar_err = cedar_config_create(slv->cedar_config_filename, &mat_ctx->conf);
-
-		// If the specified config does not exist, inform user and fall back to config.json
-		if (cedar_err == CEDAR_ERR_FNAME) {
-			char err_str[80];
-			sprintf(err_str, "Cedar config not found: %s - Falling back to config.json.", slv->cedar_config_filename);
-			stella_io_print(PETSC_COMM_WORLD, err_str);
-			cedar_config_create("config.json", &mat_ctx->conf);
-		}
-
+		mat_ctx->conf = CEDAR_CONFIG_NULL;
 		#endif
 	} else {
 		ierr = DMCreateMatrix(slv->dm, &slv->A);CHKERRQ(ierr);
