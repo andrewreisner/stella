@@ -84,12 +84,13 @@ extern "C" {
  * @param[in] nd number of dimensions
  * @param[in] ng grid number
  * @param[in] axisymmetric flag for setting the solver to be axisymmetric
+ * @param[in] cedar config filename (only used if cedar is enabled)
  */
 PetscErrorCode stella_init(stella **solver_ctx, MPI_Comm comm,
                            int nGlobal[], int nProcs[], int nLocal[],
                            int offset[], int stride[],
                            int cartCoord[], int periodic[], int periodic_storage,
-                           int nd, int axisymmetric);
+                           int nd, int axisymmetric, const char *cedar_config_fname);
 
 
 PetscErrorCode stella_solve(stella*);
@@ -151,18 +152,6 @@ PetscErrorCode stella_set_grid(stella *slv, int is[], int ie[], int num_cells, d
  */
 PetscErrorCode stella_set_boundary(stella *slv, stella_ptypes ptypes,
                                    char classify[], char norms[], double values[]);
-
-
-#ifdef WITH_CEDAR
-/**
- * Set cedar config filename
- *
- * @param slv solver object
- * @param fname Cedar config file name
- */
-
-PetscErrorCode stella_set_cedar_config(stella *slv, char fname[]);
-#endif
 
 
 /**

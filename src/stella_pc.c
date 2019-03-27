@@ -36,15 +36,7 @@ PetscErrorCode stella_pc_setup(PC pc)
 	pc_ctx->rhsvec = mat_ctx->rhsvec;
 
 	int cedar_err;
-	// check if cedar config has been set (if not create one with config.json)
-	if (mat_ctx->conf == CEDAR_CONFIG_NULL) {
-		cedar_err = cedar_config_create("config.json", &mat_ctx->conf);
-		if (cedar_err == CEDAR_ERR_FNAME) {
-			stella_io_print(PETSC_COMM_WORLD, "Cedar config <config.json> not found!");
-		}
-	}
-
-	cedar_err = cedar_solver_create(mat_ctx->so, mat_ctx->conf, &pc_ctx->solver);chkerr(cedar_err);
+	cedar_err = cedar_solver_create(mat_ctx->so, &pc_ctx->solver);chkerr(cedar_err);
 
 	if (cedar_err) {
 		SETERRQ1(PETSC_COMM_WORLD, PETSC_ERR_LIB, "Cedar error code: %d", cedar_err);

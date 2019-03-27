@@ -147,36 +147,11 @@ static PetscErrorCode update_solution(stella *slv)
 	return 0;
 }
 
-#ifdef WITH_CEDAR
-/**
- * Sets a custom cedar config file name. If not set, stella defaults to config.json.
- */
-PetscErrorCode stella_set_cedar_config(stella *slv, char fname[]) {
-	PetscErrorCode ierr;
-	MatType mtype;
-	PetscBool is_cedar;
-	stella_bmg_mat *mat_ctx;
-	int cedar_err;
-
-	ierr = MatGetType(slv->A, &mtype);
-	ierr = PetscStrcmp(mtype, MATSHELL, &is_cedar);CHKERRQ(ierr);
-	if (is_cedar) {
-		ierr = MatShellGetContext(slv->A, (void**)&mat_ctx);CHKERRQ(ierr);
-		cedar_err = cedar_config_create(fname, &mat_ctx->conf);
-		if (cedar_err == CEDAR_ERR_FNAME) {
-			char err_str[80];
-			sprintf(err_str, "Cedar config not found: %s", fname);
-			stella_io_print(PETSC_COMM_WORLD, err_str);
-		}
-	}
-}
-#endif
-
 
 /**
  * Creates and initializes data needed for setting up elliptic discretization.
  */
-static PetscErrorCode stella_setup(stella *slv, int offset[], int stride[])
+static PetscErrorCode stella_setup(stella *slv, int offset[], int stride[], const char *cedar_config_fname)
 {
 	PetscErrorCode ierr;
 	PetscInt xs, ys, zs, xm, ym, zm, ngx, ngy, ngz;
@@ -248,23 +223,28 @@ static PetscErrorCode stella_setup(stella *slv, int offset[], int stride[])
 	if (!slv->options.algebraic) {
 		#ifdef WITH_CEDAR
 		stella_bmg_mat *mat_ctx = (stella_bmg_mat*) malloc(sizeof(stella_bmg_mat));
+		cedar_config cdr_conf;
 		int cedar_err;
+		cedar_err = cedar_config_create(cedar_config_fname, &cdr_conf);
+		if (cedar_err == CEDAR_ERR_FNAME) {
+			char err_str[80];
+			sprintf(err_str, "Cedar config not found: %s", cedar_config_fname);
+			stella_io_print(slv->comm, err_str);
+		}
 		if (slv->grid.nd == 2) {
-			cedar_err = cedar_mat_create2d(slv->grid.topo, CEDAR_STENCIL_NINE_PT, &mat_ctx->so);chkerr(cedar_err);
+			cedar_err = cedar_mat_create2d(cdr_conf, slv->grid.topo, CEDAR_STENCIL_NINE_PT, &mat_ctx->so);chkerr(cedar_err);
 			cedar_err = cedar_vec_create2d(slv->grid.topo, &mat_ctx->solvec);chkerr(cedar_err);
 			cedar_err = cedar_vec_create2d(slv->grid.topo, &mat_ctx->rhsvec);chkerr(cedar_err);
 			mat_ctx->nd = 2;
 			ierr = MatCreateShell(slv->comm, xm*ym, xm*ym, ngx*ngy, ngx*ngy, mat_ctx, &slv->A);CHKERRQ(ierr);
 		} else {
-			cedar_err = cedar_mat_create3d(slv->grid.topo, CEDAR_STENCIL_XXVII_PT, &mat_ctx->so);chkerr(cedar_err);
+			cedar_err = cedar_mat_create3d(cdr_conf, slv->grid.topo, CEDAR_STENCIL_XXVII_PT, &mat_ctx->so);chkerr(cedar_err);
 			cedar_err = cedar_vec_create3d(slv->grid.topo, &mat_ctx->solvec);chkerr(cedar_err);
 			cedar_err = cedar_vec_create3d(slv->grid.topo, &mat_ctx->rhsvec);chkerr(cedar_err);
 			mat_ctx->nd = 3;
 			ierr = MatCreateShell(slv->comm, xm*ym*zm, xm*ym*zm, ngx*ngy*ngz, ngx*ngy*ngz, mat_ctx, &slv->A);CHKERRQ(ierr);
 		}
 		ierr = MatShellSetOperation(slv->A, MATOP_MULT, (void(*)(void)) stella_bmg_mult);CHKERRQ(ierr);
-
-		mat_ctx->conf = CEDAR_CONFIG_NULL;
 		#endif
 	} else {
 		ierr = DMCreateMatrix(slv->dm, &slv->A);CHKERRQ(ierr);
@@ -281,7 +261,7 @@ PetscErrorCode stella_init(stella **solver_ctx, MPI_Comm comm,
                            int nGlobal[], int nProcs[], int nLocal[],
                            int offset[], int stride[],
                            int cartCoord[], int periodic[], int periodic_storage,
-                           int nd, int axisymmetric)
+                           int nd, int axisymmetric, const char *cedar_config_fname)
 {
 	PetscErrorCode ierr;
 
@@ -304,7 +284,7 @@ PetscErrorCode stella_init(stella **solver_ctx, MPI_Comm comm,
 	ierr = stella_grid_setup(&slv->grid, &slv->dm, &slv->comm, nGlobal, nProcs,
 	                         nLocal, cartCoord, periodic, periodic_storage, nd);CHKERRQ(ierr);
 	slv->level.dm = slv->dm;
-	ierr = stella_setup(slv, offset, stride);CHKERRQ(ierr);
+	ierr = stella_setup(slv, offset, stride, cedar_config_fname);CHKERRQ(ierr);
 
 	*solver_ctx = slv;
 

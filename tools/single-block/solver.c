@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include <cedar/capi.h>
 #include "solver.h"
 #include "problem.h"
 #include "grid.h"
@@ -36,11 +37,15 @@ PetscErrorCode solver_init(solver *slv, grid *grd)
 
 	ierr = PetscInitialize(NULL, NULL, "PETScOptions.txt", NULL);CHKERRQ(ierr);
 	int overlap_periodic = 1;
+	int cedar_err;
+	cedar_config conf;
+	cedar_err = cedar_config_create("config.json", &conf);
+	cedar_err = cedar_log_init(conf);
 	ierr = stella_init(&slv->ptr, grd->comm, grd->num_global, grd->num_procs,
 	                   grd->num_local,
 	                   offset, stride,
 	                   grd->cart_coord, grd->periodic, overlap_periodic, grd->nd,
-	                   slv->axisymmetric);CHKERRQ(ierr);
+	                   slv->axisymmetric, "config-test.json");CHKERRQ(ierr);
 	ierr = stella_set_grid(slv->ptr, grd->is, grd->ie, grd->num_pts, grd->xyz);CHKERRQ(ierr);
 	ierr = stella_set_external(slv->ptr, slv->state->phi, slv->state->eps,
 	                           slv->state->debye, slv->state->jump[0], slv->state->jump[1], slv->state->jump[2]);CHKERRQ(ierr);
