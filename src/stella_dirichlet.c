@@ -10,6 +10,7 @@
 static PetscErrorCode update_dirichlet_sym(stella_bc *bc, Mat A, DM da)
 {
 	PetscErrorCode ierr;
+	DMBoundaryType bx, by;
 	PetscInt i,j,cnt;
 	PetscInt ngx, ngy;
 	PetscScalar v[13];
@@ -20,9 +21,12 @@ static PetscErrorCode update_dirichlet_sym(stella_bc *bc, Mat A, DM da)
 	PetscInt xs, ys, xm, ym;
 	ierr = DMDAGetCorners(da, &xs, &ys, 0, &xm, &ym, 0);CHKERRQ(ierr);
 
-	ierr = DMDAGetInfo(da, 0, &ngx, &ngy, 0,0,0,0,0,0,0,0,0,0);CHKERRQ(ierr);
+	ierr = DMDAGetInfo(da, 0, &ngx, &ngy, 0,0,0,0,0,0, &bx, &by,0,0);CHKERRQ(ierr);
 	char dirichlet = cls->ptypes.dirichlet;
 	ierr = stella_classify_get(cls, &classify);CHKERRQ(ierr);
+
+	PetscBool per_x = (bx == DM_BOUNDARY_PERIODIC);
+	PetscBool per_y = (by == DM_BOUNDARY_PERIODIC);
 
 	for (i = 0; i < 13; i++) v[i] = 0;
 
@@ -31,50 +35,50 @@ static PetscErrorCode update_dirichlet_sym(stella_bc *bc, Mat A, DM da)
 			if (classify[j][i] == dirichlet) {
 				col.i = i; col.j = j;
 				cnt = 0;
-				if (i-1 >= 0 && classify[j][i-1] != dirichlet) {
+				if ((i-1 >= 0 || per_x) && classify[j][i-1] != dirichlet) {
 					row[cnt].i = i-1; row[cnt].j = j;
 					cnt++;
-					if (j-1 >= 0) {
+					if (j-1 >= 0 || per_y) {
 						row[cnt].i = i-1; row[cnt].j = j-1;
 						cnt++;
 					}
-					if (j+1 <= ngy-1) {
+					if (j+1 <= ngy-1 || per_y) {
 						row[cnt].i = i-1; row[cnt].j = j+1;
 						cnt++;
 					}
 				}
-				if (i+1 <= ngx-1 && classify[j][i+1] != dirichlet) {
+				if ((i+1 <= ngx-1 || per_x) && classify[j][i+1] != dirichlet) {
 					row[cnt].i = i+1; row[cnt].j = j;
 					cnt++;
-					if (j-1 >= 0) {
+					if (j-1 >= 0 || per_y) {
 						row[cnt].i = i+1; row[cnt].j = j-1;
 						cnt++;
 					}
-					if (j+1 <= ngy-1) {
+					if (j+1 <= ngy-1 || per_y) {
 						row[cnt].i = i+1; row[cnt].j = j+1;
 						cnt++;
 					}
 				}
-				if (j-1 >= 0 && classify[j-1][i] != dirichlet) {
+				if ((j-1 >= 0 || per_y) && classify[j-1][i] != dirichlet) {
 					row[cnt].i = i; row[cnt].j = j-1;
 					cnt++;
-					if (i-1 >= 0) {
+					if (i-1 >= 0 || per_x) {
 						row[cnt].i = i-1; row[cnt].j = j-1;
 						cnt++;
 					}
-					if (i+1 <= ngx - 1) {
+					if (i+1 <= ngx - 1 || per_x) {
 						row[cnt].i = i+1; row[cnt].j = j-1;
 						cnt++;
 					}
 				}
-				if (j+1 <= ngy-1 && classify[j+1][i] != dirichlet) {
+				if ((j+1 <= ngy-1 || per_y) && classify[j+1][i] != dirichlet) {
 					row[cnt].i = i; row[cnt].j = j+1;
 					cnt++;
-					if (i-1 >= 0) {
+					if (i-1 >= 0 || per_x) {
 						row[cnt].i = i-1; row[cnt].j = j+1;
 						cnt++;
 					}
-					if (i+1 <= ngx - 1) {
+					if (i+1 <= ngx - 1 || per_x) {
 						row[cnt].i = i+1; row[cnt].j = j+1;
 						cnt++;
 					}
@@ -94,6 +98,7 @@ static PetscErrorCode update_dirichlet_sym(stella_bc *bc, Mat A, DM da)
 static PetscErrorCode update_dirichlet_sym_3d(stella_bc *bc, Mat A, DM da)
 {
 	PetscErrorCode ierr;
+	DMBoundaryType bx, by, bz;
 	PetscInt i, j, k, cnt;
 	PetscInt ngx, ngy, ngz;
 	PetscScalar v[31];
@@ -104,9 +109,13 @@ static PetscErrorCode update_dirichlet_sym_3d(stella_bc *bc, Mat A, DM da)
 	PetscInt xs, ys, zs, xm, ym, zm;
 	ierr = DMDAGetCorners(da, &xs, &ys, &zs, &xm, &ym, &zm);CHKERRQ(ierr);
 
-	ierr = DMDAGetInfo(da, 0, &ngx, &ngy, &ngz,0,0,0,0,0,0,0,0,0);CHKERRQ(ierr);
+	ierr = DMDAGetInfo(da, 0, &ngx, &ngy, &ngz,0,0,0,0,0,&bx,&by,&bz,0);CHKERRQ(ierr);
 	char dirichlet = cls->ptypes.dirichlet;
 	ierr = stella_classify_get(cls, &classify);CHKERRQ(ierr);
+
+	PetscBool per_x = (bx == DM_BOUNDARY_PERIODIC);
+	PetscBool per_y = (by == DM_BOUNDARY_PERIODIC);
+	PetscBool per_z = (bz == DM_BOUNDARY_PERIODIC);
 
 	for (i = 0; i < 31; i++) v[i] = 0;
 	for (k = zs; k < zs + zm; k++) {
@@ -116,122 +125,122 @@ static PetscErrorCode update_dirichlet_sym_3d(stella_bc *bc, Mat A, DM da)
 					col.i = i; col.j = j; col.k = k;
 					cnt = 0;
 
-					if (i-1 >= 0 && classify[k][j][i-1] != dirichlet) {
+					if ((i-1 >= 0 || per_x) && classify[k][j][i-1] != dirichlet) {
 						row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k;
 						cnt++;
-						if (j-1 >= 0) {
+						if (j-1 >= 0 || per_y) {
 							row[cnt].i = i-1; row[cnt].j = j-1; row[cnt].k = k;
 							cnt++;
 						}
-						if (j+1 <= ngy-1) {
+						if (j+1 <= ngy-1 || per_y) {
 							row[cnt].i = i-1; row[cnt].j = j+1; row[cnt].k = k;
 							cnt++;
 						}
-						if (k-1 >= 0) {
+						if (k-1 >= 0 || per_z) {
 							row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k-1;
 							cnt++;
 						}
-						if (k+1 <= ngz - 1) {
+						if (k+1 <= ngz - 1 || per_z) {
 							row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k+1;
 							cnt++;
 						}
 					}
-					if (i+1 <= ngx - 1 && classify[k][j][i+1] != dirichlet) {
+					if ((i+1 <= ngx - 1 || per_x) && classify[k][j][i+1] != dirichlet) {
 						row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k;
 						cnt++;
-						if (j-1 >= 0) {
+						if (j-1 >= 0 || per_y) {
 							row[cnt].i = i+1; row[cnt].j = j-1; row[cnt].k = k;
 							cnt++;
 						}
-						if (j+1 <= ngy-1) {
+						if (j+1 <= ngy-1 || per_y) {
 							row[cnt].i = i+1; row[cnt].j = j+1; row[cnt].k = k;
 							cnt++;
 						}
-						if (k-1 >= 0) {
+						if (k-1 >= 0 || per_z) {
 							row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k-1;
 							cnt++;
 						}
-						if (k+1 <= ngz - 1) {
+						if (k+1 <= ngz - 1 || per_z) {
 							row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k+1;
 							cnt++;
 						}
 					}
-					if (j-1 >= 0 && classify[k][j-1][i] != dirichlet) {
+					if ((j-1 >= 0 || per_y) && classify[k][j-1][i] != dirichlet) {
 						row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k;
 						cnt++;
-						if (i-1 >= 0) {
+						if (i-1 >= 0 || per_x) {
 							row[cnt].i = i-1; row[cnt].j = j-1; row[cnt].k = k;
 							cnt++;
 						}
-						if (i+1 <= ngx - 1) {
+						if (i+1 <= ngx - 1 || per_x) {
 							row[cnt].i = i+1; row[cnt].j = j-1; row[cnt].k = k;
 							cnt++;
 						}
-						if (k-1 >= 0) {
+						if (k-1 >= 0 || per_z) {
 							row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k-1;
 							cnt++;
 						}
-						if (k+1 <= ngz - 1) {
+						if (k+1 <= ngz - 1 || per_z) {
 							row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k+1;
 							cnt++;
 						}
 					}
-					if (j+1 <= ngy - 1 && classify[k][j+1][i] != dirichlet) {
+					if ((j+1 <= ngy - 1 || per_y) && classify[k][j+1][i] != dirichlet) {
 						row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k;
 						cnt++;
-						if (i-1 >= 0) {
+						if (i-1 >= 0 || per_x) {
 							row[cnt].i = i-1; row[cnt].j = j+1; row[cnt].k = k;
 							cnt++;
 						}
-						if (i+1 <= ngx - 1) {
+						if (i+1 <= ngx - 1 || per_x) {
 							row[cnt].i = i+1; row[cnt].j = j+1; row[cnt].k = k;
 							cnt++;
 						}
-						if (k-1 >= 0) {
+						if (k-1 >= 0 || per_z) {
 							row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k-1;
 							cnt++;
 						}
-						if (k+1 <= ngz - 1) {
+						if (k+1 <= ngz - 1 || per_z) {
 							row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k+1;
 							cnt++;
 						}
 					}
-					if (k-1 >= 0 && classify[k-1][j][i] != dirichlet) {
+					if ((k-1 >= 0 || per_z) && classify[k-1][j][i] != dirichlet) {
 						row[cnt].i = i; row[cnt].j = j; row[cnt].k = k-1;
 						cnt++;
-						if (i-1 >= 0) {
+						if (i-1 >= 0 || per_x) {
 							row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k-1;
 							cnt++;
 						}
-						if (i+1 <= ngx - 1) {
+						if (i+1 <= ngx - 1 || per_x) {
 							row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k-1;
 							cnt++;
 						}
-						if (j-1 >= 0) {
+						if (j-1 >= 0 || per_y) {
 							row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k-1;
 							cnt++;
 						}
-						if (j+1 <= ngy - 1) {
+						if (j+1 <= ngy - 1 || per_y) {
 							row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k-1;
 							cnt++;
 						}
 					}
-					if (k+1 <= ngz - 1 && classify[k+1][j][i] != dirichlet) {
+					if ((k+1 <= ngz - 1 || per_z) && classify[k+1][j][i] != dirichlet) {
 						row[cnt].i = i; row[cnt].j = j; row[cnt].k = k+1;
 						cnt++;
-						if (i-1 >= 0) {
+						if (i-1 >= 0 || per_x) {
 							row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k+1;
 							cnt++;
 						}
-						if (i+1 <= ngx - 1) {
+						if (i+1 <= ngx - 1 || per_x) {
 							row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k+1;
 							cnt++;
 						}
-						if (j-1 >= 0) {
+						if (j-1 >= 0 || per_y) {
 							row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k+1;
 							cnt++;
 						}
-						if (j+1 <= ngy - 1) {
+						if (j+1 <= ngy - 1 || per_y) {
 							row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k+1;
 							cnt++;
 						}
@@ -259,6 +268,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 	PetscErrorCode ierr;
 	DM cda;
 	DMDACoor2d **coors;
+	DMBoundaryType bx, by;
 	Vec lc;
 	PetscInt i,j,cnt;
 	PetscInt ngx, ngy;
@@ -283,8 +293,11 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 
 	met = bc->level->metric;
 
+	PetscBool per_x = (bx == DM_BOUNDARY_PERIODIC);
+	PetscBool per_y = (by == DM_BOUNDARY_PERIODIC);
+
 	ierr = MatGetType(A, &mtype);CHKERRQ(ierr);
-	ierr = DMDAGetInfo(da, 0, &ngx, &ngy, 0,0,0,0,0,0,0,0,0,0);CHKERRQ(ierr);
+	ierr = DMDAGetInfo(da, 0, &ngx, &ngy, 0,0,0,0,0,0,&bx,&by,0,0);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da, bc->level->ladd_cont, &acont);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da, bc->level->ldcoef, &dcoef);CHKERRQ(ierr);
 
@@ -306,7 +319,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 				col[0].i = i; col[0].j = j;
 				cnt = 1;
 
-				if (i != 0) {
+				if (i != 0 || per_x) {
 					col[cnt].i = i-1; col[cnt].j = j;
 					v[cnt] = 0; cnt++;
 					if (classify[j][i-1] != dirichlet) {
@@ -315,7 +328,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 						acont[j][i-1] += weight;
 					}
 				}
-				if (j != 0) {
+				if (j != 0 || per_y) {
 					col[cnt].i = i; col[cnt].j = j-1;
 					v[cnt] = 0; cnt++;
 					if (classify[j-1][i] != dirichlet) {
@@ -325,7 +338,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 					}
 				}
 				// SW
-				if (i != 0 && j != 0) {
+				if ((i != 0 || per_x) && (j != 0 || per_y)) {
 					col[cnt].i = i-1; col[cnt].j = j-1;
 					v[cnt] = 0; cnt++;
 					if ((classify[j][i-1] != dirichlet) || (classify[j-1][i] != dirichlet)) {
@@ -334,7 +347,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 						acont[j-1][i-1] += weight;
 					}
 				}
-				if (i != ngx - 1) {
+				if (i != ngx - 1 || per_x) {
 					col[cnt].i = i+1; col[cnt].j = j;
 					v[cnt] = 0; cnt++;
 					if (classify[j][i+1] != dirichlet) {
@@ -344,7 +357,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 					}
 				}
 				// SE
-				if (i != ngx - 1 && j != 0) {
+				if ((i != ngx - 1 || per_x) && (j != 0 || per_y)) {
 					col[cnt].i = i+1; col[cnt].j = j-1;
 					v[cnt] = 0; cnt++;
 					if ((classify[j][i+1] != dirichlet) || (classify[j-1][i] != dirichlet)) {
@@ -354,7 +367,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 					}
 				}
 				// NW
-				if (i !=0 && j != ngy - 1) {
+				if ((i !=0 || per_x) && (j != ngy - 1 || per_y)) {
 					col[cnt].i = i-1; col[cnt].j = j+1;
 					v[cnt] = 0; cnt++;
 					if  ((classify[j][i-1] != dirichlet) || (classify[j+1][i] != dirichlet)) {
@@ -363,7 +376,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 						acont[j+1][i-1] += weight;
 					}
 				}
-				if (j != ngy - 1) {
+				if (j != ngy - 1 || per_y) {
 					col[cnt].i = i; col[cnt].j = j+1;
 					v[cnt] = 0; cnt++;
 					if (classify[j+1][i] != dirichlet) {
@@ -373,7 +386,7 @@ static PetscErrorCode apply_dirichlet(stella_bc *bc, Mat A, DM da)
 					}
 				}
 				// NE
-				if ((i != ngx - 1) && (j != ngy - 1)) {
+				if ((i != ngx - 1 || per_x) && (j != ngy - 1 || per_y)) {
 					col[cnt].i = i+1; col[cnt].j = j+1;
 					v[cnt] = 0; cnt++;
 					if ((classify[j][i+1] != dirichlet) || (classify[j+1][i] != dirichlet)) {
@@ -414,6 +427,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 	PetscErrorCode ierr;
 	PetscInt i,j,k,cnt;
 	PetscInt ngx, ngy, ngz;
+	DMBoundaryType bx, by, bz;
 	PetscScalar v[37];
 	MatStencil row, col[37];
 	MatType mtype;
@@ -444,11 +458,15 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 
 
 	met = bc->level->metric;
-	ierr = DMDAGetInfo(da, 0, &ngx, &ngy, &ngz,0,0,0,0,0,0,0,0,0);CHKERRQ(ierr);
+	ierr = DMDAGetInfo(da, 0, &ngx, &ngy, &ngz,0,0,0,0,0,&bx,&by,&bz,0);CHKERRQ(ierr);
 	PetscInt xs, ys, zs, xm, ym, zm;
 	ierr = DMDAGetCorners(da, &xs, &ys, &zs, &xm, &ym, &zm);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da, bc->level->ladd_cont, &acont);CHKERRQ(ierr);
 	ierr = DMDAVecGetArray(da, bc->level->ldcoef, &dcoef);CHKERRQ(ierr);
+
+	PetscBool per_x = (bx == DM_BOUNDARY_PERIODIC);
+	PetscBool per_y = (by == DM_BOUNDARY_PERIODIC);
+	PetscBool per_z = (bz == DM_BOUNDARY_PERIODIC);
 
 	enum dir {
 		O = 0, N, S, E, W, F, B, NW, NE, SW, SE, NF, NB, SF, SB, FE, FW, BE, BW
@@ -507,7 +525,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 					col[0].i = i; col[0].j = j; col[0].k = k;
 					cnt = 1;
 
-					if (i != 0) {
+					if (i != 0 || per_x) {
 						col[cnt].i = i-1; col[cnt].j = j; col[cnt].k = k;
 						v[cnt] = 0; cnt++;
 						if (classify[k][j][i-1] != dirichlet) {
@@ -515,7 +533,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k][j][i-1] += weight;
 						}
 					}
-					if (j != 0) {
+					if (j != 0 || per_y) {
 						col[cnt].i = i; col[cnt].j = j-1; col[cnt].k = k;
 						v[cnt] = 0; cnt++;
 						if (classify[k][j-1][i] != dirichlet) {
@@ -523,7 +541,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k][j-1][i] += weight;
 						}
 					}
-					if (k != 0) {
+					if (k != 0 || per_z) {
 						col[cnt].i = i; col[cnt].j = j; col[cnt].k = k-1;
 						v[cnt] = 0; cnt++;
 						if (classify[k-1][j][i] != dirichlet) {
@@ -531,7 +549,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k-1][j][i] += weight;
 						}
 					}
-					if (i != ngx - 1) {
+					if (i != ngx - 1 || per_x) {
 						col[cnt].i = i+1; col[cnt].j = j; col[cnt].k = k;
 						v[cnt] = 0; cnt++;
 						if (classify[k][j][i+1] != dirichlet) {
@@ -539,7 +557,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k][j][i+1] += weight;
 						}
 					}
-					if (j != ngy - 1) {
+					if (j != ngy - 1 || per_y) {
 						col[cnt].i = i; col[cnt].j = j+1; col[cnt].k = k;
 						v[cnt] = 0; cnt++;
 						if (classify[k][j+1][i] != dirichlet) {
@@ -547,7 +565,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k][j+1][i] += weight;
 						}
 					}
-					if (k != ngz - 1) {
+					if (k != ngz - 1 || per_z) {
 						col[cnt].i = i; col[cnt].j = j; col[cnt].k = k+1;
 						v[cnt] = 0; cnt++;
 						if (classify[k+1][j][i] != dirichlet) {
@@ -555,7 +573,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k+1][j][i] += weight;
 						}
 					}
-					if (i != 0 && j != 0) {
+					if ((i != 0 || per_x) && (j != 0 || per_y)) {
 						col[cnt].i = i-1; col[cnt].j = j-1; col[cnt].k = k;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j][i-1] != dirichlet) || (classify[k][j-1][i] != dirichlet)) {
@@ -563,7 +581,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k][j-1][i-1] += weight;
 						}
 					}
-					if (i != ngx - 1 && j != 0) {
+					if ((i != ngx - 1 || per_x) && (j != 0 || per_y)) {
 						col[cnt].i = i+1; col[cnt].j = j-1; col[cnt].k = k;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j][i+1] != dirichlet) || (classify[k][j-1][i] != dirichlet)) {
@@ -571,7 +589,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k][j-1][i+1] += weight;
 						}
 					}
-					if (i != 0 && j != ngy-1) {
+					if ((i != 0 || per_x) && (j != ngy-1 || per_y)) {
 						col[cnt].i = i-1; col[cnt].j = j+1; col[cnt].k = k;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j][i-1] != dirichlet) || (classify[k][j+1][i] != dirichlet)) {
@@ -579,7 +597,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k][j+1][i-1] += weight;
 						}
 					}
-					if ((i != ngx -1) && (j != ngy - 1)) {
+					if ((i != ngx -1 || per_x) && (j != ngy - 1 || per_y)) {
 						col[cnt].i = i+1; col[cnt].j = j+1; col[cnt].k = k;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j][i+1] != dirichlet) || (classify[k][j+1][i] != dirichlet)) {
@@ -587,7 +605,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k][j+1][i+1] += weight;
 						}
 					}
-					if (i != 0 && k != 0) {
+					if ((i != 0 || per_x) && (k != 0 || per_z)) {
 						col[cnt].i = i-1; col[cnt].j = j; col[cnt].k = k-1;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j][i-1] != dirichlet) || (classify[k-1][j][i] != dirichlet)) {
@@ -595,7 +613,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k-1][j][i-1] += weight;
 						}
 					}
-					if (i != ngx - 1 && k != 0) {
+					if ((i != ngx - 1 || per_x) && (k != 0 || per_z)) {
 						col[cnt].i = i+1; col[cnt].j = j; col[cnt].k = k-1;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j][i+1] != dirichlet) || (classify[k-1][j][i] != dirichlet)) {
@@ -603,7 +621,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k-1][j][i+1] += weight;
 						}
 					}
-					if (i != 0 && k != ngz-1) {
+					if ((i != 0 || per_x) && (k != ngz-1 || per_z)) {
 						col[cnt].i = i-1; col[cnt].j = j; col[cnt].k = k+1;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j][i-1] != dirichlet) || (classify[k+1][j][i] != dirichlet)) {
@@ -611,7 +629,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k+1][j][i-1] += weight;
 						}
 					}
-					if ((i != ngx-1) && (k != ngz -1)) {
+					if ((i != ngx-1 || per_x) && (k != ngz -1 || per_z)) {
 						col[cnt].i = i+1; col[cnt].j = j; col[cnt].k = k+1;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j][i+1] != dirichlet) || (classify[k+1][j][i] != dirichlet)) {
@@ -619,7 +637,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k+1][j][i+1] += weight;
 						}
 					}
-					if (j != 0 && k != 0) {
+					if ((j != 0 || per_y) && (k != 0 || per_z)) {
 						col[cnt].i = i; col[cnt].j = j-1; col[cnt].k = k-1;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j-1][i] != dirichlet) || (classify[k-1][j][i] != dirichlet)) {
@@ -627,7 +645,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k-1][j-1][i] += weight;
 						}
 					}
-					if (j != ngy - 1 && k != 0) {
+					if ((j != ngy - 1 || per_y) && (k != 0 || per_z)) {
 						col[cnt].i = i; col[cnt].j = j+1; col[cnt].k = k-1;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j+1][i] != dirichlet) || (classify[k-1][j][i] != dirichlet)) {
@@ -635,7 +653,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k-1][j+1][i] += weight;
 						}
 					}
-					if (j != 0 && k != ngz-1) {
+					if ((j != 0 || per_y) && (k != ngz-1 || per_z)) {
 						col[cnt].i = i; col[cnt].j = j-1; col[cnt].k = k+1;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j-1][i] != dirichlet) || (classify[k+1][j][i] != dirichlet)) {
@@ -643,7 +661,7 @@ static PetscErrorCode apply_dirichlet_3d(stella_bc *bc, Mat A, DM da)
 							acont[k+1][j-1][i] += weight;
 						}
 					}
-					if ((j != ngy-1) && (k != ngz -1)) {
+					if ((j != ngy-1 || per_y) && (k != ngz -1 || per_z)) {
 						col[cnt].i = i; col[cnt].j = j+1; col[cnt].k = k+1;
 						v[cnt] = 0; cnt++;
 						if ((classify[k][j+1][i] != dirichlet) || (classify[k+1][j][i] != dirichlet)) {
