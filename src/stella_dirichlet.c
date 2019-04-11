@@ -129,93 +129,147 @@ static PetscErrorCode update_dirichlet_sym_3d(stella_bc *bc, Mat A, DM da)
 		set_stencil = &MatSetValuesStencil;
 	}
 
+	PetscInt ibeg, jbeg, kbeg, iend, jend, kend;
+	ibeg = xs; jbeg = ys; kbeg = zs;
+	iend = xs + xm; jend = ys + ym; kend = zs + zm;
+	if (is_cedar) { // Need to pass over processor boundaries for Cedar
+		if (xs != 0 || per_x)
+			ibeg--;
+		if (ys != 0 || per_y)
+			jbeg--;
+		if (zs != 0 || per_z)
+			kbeg--;
+
+		if (xs + xm != ngx || per_x)
+			iend++;
+		if (ys + ym != ngy || per_y)
+			jend++;
+		if (zs + zm != ngz || per_z)
+			kend++;
+	}
 	for (i = 0; i < 31; i++) v[i] = 0;
-	for (k = zs; k < zs + zm; k++) {
-		for (j = ys; j < ys + ym; j++) {
-			for (i = xs; i < xs + xm; i++) {
+	for (k = kbeg; k < kend; k++) {
+		for (j = jbeg; j < jend; j++) {
+			for (i = ibeg; i < iend; i++) {
 				if (classify[k][j][i] == dirichlet) {
 					col.i = i; col.j = j; col.k = k;
 					cnt = 0;
 
-					if ((i-1 >= 0 || per_x) && classify[k][j][i-1] != dirichlet) {
-						row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k;
-						cnt++;
+					if (i >= xs) {
+						if ((i-1 >= 0 || per_x) && classify[k][j][i-1] != dirichlet) {
+							row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k;
+							cnt++;
+						}
 					}
-					if ((i-1 >= 0 || per_x) && (j-1 >= 0 || per_y) && classify[k][j-1][i-1] != dirichlet) {
-						row[cnt].i = i-1; row[cnt].j = j-1; row[cnt].k = k;
-						cnt++;
+					if (i >= xs && j >= ys) {
+						if ((i-1 >= 0 || per_x) && (j-1 >= 0 || per_y) && classify[k][j-1][i-1] != dirichlet) {
+							row[cnt].i = i-1; row[cnt].j = j-1; row[cnt].k = k;
+							cnt++;
+						}
 					}
-					if ((i-1 >= 0 || per_x) && (j+1 <= ngy-1 || per_y) && classify[k][j+1][i-1] != dirichlet) {
-						row[cnt].i = i-1; row[cnt].j = j+1; row[cnt].k = k;
-						cnt++;
+					if (i >= xs && j < ys + ym) {
+						if ((i-1 >= 0 || per_x) && (j+1 <= ngy-1 || per_y) && classify[k][j+1][i-1] != dirichlet) {
+							row[cnt].i = i-1; row[cnt].j = j+1; row[cnt].k = k;
+							cnt++;
+						}
 					}
-					if ((i-1 >= 0 || per_x) && (k-1 >= 0 || per_z) && classify[k-1][j][i-1] != dirichlet) {
-						row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k-1;
-						cnt++;
+					if (i >= xs && k >= zs) {
+						if ((i-1 >= 0 || per_x) && (k-1 >= 0 || per_z) && classify[k-1][j][i-1] != dirichlet) {
+							row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k-1;
+							cnt++;
+						}
 					}
-					if ((i-1 >= 0 || per_x) && (k+1 <= ngz - 1 || per_z) && classify[k+1][j][i-1] != dirichlet) {
-						row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k+1;
-						cnt++;
-					}
-
-
-					if ((i+1 <= ngx - 1 || per_x) && classify[k][j][i+1] != dirichlet) {
-						row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k;
-						cnt++;
-					}
-					if ((i+1 <= ngx - 1 || per_x) && (j-1 >= 0 || per_y) && classify[k][j-1][i+1] != dirichlet) {
-						row[cnt].i = i+1; row[cnt].j = j-1; row[cnt].k = k;
-						cnt++;
-					}
-					if ((i+1 <= ngx - 1 || per_x) && (j+1 <= ngy-1 || per_y) && classify[k][j+1][i+1] != dirichlet) {
-						row[cnt].i = i+1; row[cnt].j = j+1; row[cnt].k = k;
-						cnt++;
-					}
-					if ((i+1 <= ngx - 1 || per_x) && (k-1 >= 0 || per_z) && classify[k-1][j][i+1] != dirichlet) {
-						row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k-1;
-						cnt++;
-					}
-					if ((i+1 <= ngx - 1 || per_x) && (k+1 <= ngz - 1 || per_z) && classify[k+1][j][i+1] != dirichlet) {
-						row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k+1;
-						cnt++;
+					if (i > xs && k < zs + zm) {
+						if ((i-1 >= 0 || per_x) && (k+1 <= ngz - 1 || per_z) && classify[k+1][j][i-1] != dirichlet) {
+							row[cnt].i = i-1; row[cnt].j = j; row[cnt].k = k+1;
+							cnt++;
+						}
 					}
 
 
-					if ((j-1 >= 0 || per_y) && classify[k][j-1][i] != dirichlet) {
-						row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k;
-						cnt++;
+					if (i < xs + xm) {
+						if ((i+1 <= ngx - 1 || per_x) && classify[k][j][i+1] != dirichlet) {
+							row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k;
+							cnt++;
+						}
 					}
-					if ((j-1 >= 0 || per_y) && (k-1 >= 0 || per_z) && classify[k-1][j-1][i] != dirichlet) {
-						row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k-1;
-						cnt++;
+					if (i < xs + xm && j >= ys) {
+						if ((i+1 <= ngx - 1 || per_x) && (j-1 >= 0 || per_y) && classify[k][j-1][i+1] != dirichlet) {
+							row[cnt].i = i+1; row[cnt].j = j-1; row[cnt].k = k;
+							cnt++;
+						}
 					}
-					if ((j-1 >= 0 || per_y) && (k+1 <= ngz - 1 || per_z) && classify[k+1][j-1][i] != dirichlet) {
-						row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k+1;
-						cnt++;
+					if (i < xs + xm && j < ys + ym) {
+						if ((i+1 <= ngx - 1 || per_x) && (j+1 <= ngy-1 || per_y) && classify[k][j+1][i+1] != dirichlet) {
+							row[cnt].i = i+1; row[cnt].j = j+1; row[cnt].k = k;
+							cnt++;
+						}
+					}
+					if (i < xs + xm && k >= zs) {
+						if ((i+1 <= ngx - 1 || per_x) && (k-1 >= 0 || per_z) && classify[k-1][j][i+1] != dirichlet) {
+							row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k-1;
+							cnt++;
+						}
+					}
+					if (i < xs + xm && k < zs + zm) {
+						if ((i+1 <= ngx - 1 || per_x) && (k+1 <= ngz - 1 || per_z) && classify[k+1][j][i+1] != dirichlet) {
+							row[cnt].i = i+1; row[cnt].j = j; row[cnt].k = k+1;
+							cnt++;
+						}
 					}
 
 
-					if ((j+1 <= ngy - 1 || per_y) && classify[k][j+1][i] != dirichlet) {
-						row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k;
-						cnt++;
+					if (j >= ys) {
+						if ((j-1 >= 0 || per_y) && classify[k][j-1][i] != dirichlet) {
+							row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k;
+							cnt++;
+						}
 					}
-					if ((j+1 <= ngy - 1 || per_y) && (k-1 >= 0 || per_z) && classify[k-1][j+1][i] != dirichlet) {
-						row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k-1;
-						cnt++;
+					if (j >= ys && k >= zs) {
+						if ((j-1 >= 0 || per_y) && (k-1 >= 0 || per_z) && classify[k-1][j-1][i] != dirichlet) {
+							row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k-1;
+							cnt++;
+						}
 					}
-					if ((j+1 <= ngy - 1 || per_y) && (k+1 <= ngz - 1 || per_z) && classify[k+1][j+1][i] != dirichlet) {
-						row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k+1;
-						cnt++;
+					if (j >= ys && k < zs + zm) {
+						if ((j-1 >= 0 || per_y) && (k+1 <= ngz - 1 || per_z) && classify[k+1][j-1][i] != dirichlet) {
+							row[cnt].i = i; row[cnt].j = j-1; row[cnt].k = k+1;
+							cnt++;
+						}
 					}
 
 
-					if ((k-1 >= 0 || per_z) && classify[k-1][j][i] != dirichlet) {
-						row[cnt].i = i; row[cnt].j = j; row[cnt].k = k-1;
-						cnt++;
+					if (j < ys + ym) {
+						if ((j+1 <= ngy - 1 || per_y) && classify[k][j+1][i] != dirichlet) {
+							row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k;
+							cnt++;
+						}
 					}
-					if ((k+1 <= ngz - 1 || per_z) && classify[k+1][j][i] != dirichlet) {
-						row[cnt].i = i; row[cnt].j = j; row[cnt].k = k+1;
-						cnt++;
+					if (j < ys + ym && k >= zs) {
+						if ((j+1 <= ngy - 1 || per_y) && (k-1 >= 0 || per_z) && classify[k-1][j+1][i] != dirichlet) {
+							row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k-1;
+							cnt++;
+						}
+					}
+					if (j < ys + ym && k < zs + zm) {
+						if ((j+1 <= ngy - 1 || per_y) && (k+1 <= ngz - 1 || per_z) && classify[k+1][j+1][i] != dirichlet) {
+							row[cnt].i = i; row[cnt].j = j+1; row[cnt].k = k+1;
+							cnt++;
+						}
+					}
+
+
+					if (k >= zs) {
+						if ((k-1 >= 0 || per_z) && classify[k-1][j][i] != dirichlet) {
+							row[cnt].i = i; row[cnt].j = j; row[cnt].k = k-1;
+							cnt++;
+						}
+					}
+					if (k < zs + zm) {
+						if ((k+1 <= ngz - 1 || per_z) && classify[k+1][j][i] != dirichlet) {
+							row[cnt].i = i; row[cnt].j = j; row[cnt].k = k+1;
+							cnt++;
+						}
 					}
 
 					ierr = set_stencil(A, cnt, row, 1, &col, v, INSERT_VALUES);CHKERRQ(ierr);
