@@ -24,12 +24,7 @@ PetscErrorCode stella_boundary_create(stella_boundary **stella_bnd, stella_level
 PetscErrorCode stella_boundary_apply(stella_boundary *bnd, Mat A, DM da)
 {
 	PetscErrorCode ierr;
-	MatType mtype;
-	PetscBool is_cedar;
 	int i;
-
-	ierr = MatGetType(A, &mtype);CHKERRQ(ierr);
-	ierr = PetscStrcmp(mtype, MATSHELL, &is_cedar);CHKERRQ(ierr);
 
 	ierr = DMGlobalToLocalBegin(da, bnd->level->add_cont, INSERT_VALUES, bnd->level->ladd_cont);CHKERRQ(ierr);
 	ierr = DMGlobalToLocalEnd(da, bnd->level->add_cont, INSERT_VALUES, bnd->level->ladd_cont);CHKERRQ(ierr);
@@ -46,10 +41,8 @@ PetscErrorCode stella_boundary_apply(stella_boundary *bnd, Mat A, DM da)
 		}
 	}
 
-	if (!is_cedar) {
-		for (i = 0; i < bnd->num_bc; i++) {
-			ierr = stella_bc_symmetric(bnd->bc[i], A, da);CHKERRQ(ierr);
-		}
+	for (i = 0; i < bnd->num_bc; i++) {
+		ierr = stella_bc_symmetric(bnd->bc[i], A, da);CHKERRQ(ierr);
 	}
 
 	ierr = DMLocalToGlobalBegin(da, bnd->level->ladd_cont, ADD_VALUES, bnd->level->add_cont);CHKERRQ(ierr);
