@@ -24,6 +24,30 @@ static int contains(int *proc_is, int *proc_ie, int *hole_is, int *hole_ie, int 
 }
 
 
+static void add_wall(boundary *bnd, grid *grd)
+{
+	char *classify = bnd->classify;
+	// char *norm_dirs = bnd->norm_dir;
+	double *values = bnd->values;
+
+	int i, j;
+	for (j = grd->ibeg[1]; j <= grd->iend[1]; j++) {
+		for (i = grd->ibeg[0]; i <= grd->iend[0]; i++) {
+			if (j - grd->ibeg[1] == 10) {
+				int ind = j*grd->len[0] + i;
+				classify[ind] = DIRICHLET;
+				values[ind] = 1.0;
+			}
+			if (j - grd->ibeg[1] < 10) {
+				int ind = j*grd->len[0] + i;
+				classify[ind] = DIRICHLET;
+				values[ind] = 0.0;
+			}
+		}
+	}
+}
+
+
 static void add_2d(boundary *bnd, grid *grd, problem *pb)
 {
 	char *classify = bnd->classify;
@@ -255,6 +279,8 @@ boundary *boundary_create(grid *grd, problem *pb)
 	} else {
 		add_2d(bnd, grd, pb);
 	}
+
+	add_wall(bnd, grd);
 
 	if (pb->id == ELECTRODE) {
 		add_electrodes(bnd, grd, pb);

@@ -346,6 +346,9 @@ PetscErrorCode stella_set_external(stella *slv, double phi[], double dcoef[],
 	slv->state.sol = NULL;
 
 	ierr = stella_store_external_array(slv, slv->state.dcoef, slv->level.dcoef);CHKERRQ(ierr);
+	{ // print dcoef
+		ierr = stella_io_vtkwrite(slv->dm, slv->level.dcoef, "dcoef", 0, 0);CHKERRQ(ierr);
+	}
 	// populate halo region
 	ierr = DMGlobalToLocalBegin(slv->dm, slv->level.dcoef, INSERT_VALUES, slv->level.ldcoef);CHKERRQ(ierr);
 	ierr = DMGlobalToLocalEnd(slv->dm, slv->level.dcoef, INSERT_VALUES, slv->level.ldcoef);CHKERRQ(ierr);
