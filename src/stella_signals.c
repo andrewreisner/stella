@@ -97,18 +97,29 @@ static PetscErrorCode contribute_interface(stella *slv)
 		for (j = ys; j < ys + ym; j++) {
 			for (i = xs; i < xs + xm; i++) {
 
-				if ((i != ngx-1) && (dcoef[j][i] != dcoef[j][i+1]))
-					fxp = 2.0*dcoef[j][i]*jump_x[j][i] / (dcoef[j][i] + dcoef[j][i+1]) / (x_s[j][i]+x_s[j][i+1]);
-				else fxp = 0;
-				if ((i != 0) && (dcoef[j][i] != dcoef[j][i-1]))
-					fxm = 2.0*dcoef[j][i]*jump_x[j][i] / (dcoef[j][i] + dcoef[j][i-1]) / (x_s[j][i]+x_s[j][i-1]);
-				else fxm = 0;
-				if ((j != ngy-1) && (dcoef[j][i] != dcoef[j+1][i]))
-					fyp = 2.0*dcoef[j][i]*jump_y[j][i] / (dcoef[j][i] + dcoef[j+1][i]) / (y_t[j][i]+y_t[j+1][i]);
-				else fyp = 0;
-				if ((j != 0) && (dcoef[j][i] != dcoef[j-1][i]))
-					fym = 2.0*dcoef[j][i]*jump_y[j][i] / (dcoef[j][i] + dcoef[j-1][i]) / (y_t[j][i]+y_t[j-1][i]);
-				else fym = 0;
+				if (jump_x[j][i] != 0) {
+					if ((i != ngx-1) && (dcoef[j][i] != dcoef[j][i+1]))
+						fxp = 2.0*dcoef[j][i]*jump_x[j][i] / (dcoef[j][i] + dcoef[j][i+1]) / (x_s[j][i]+x_s[j][i+1]);
+					else fxp = 0;
+					if ((i != 0) && (dcoef[j][i] != dcoef[j][i-1]))
+						fxm = 2.0*dcoef[j][i]*jump_x[j][i] / (dcoef[j][i] + dcoef[j][i-1]) / (x_s[j][i]+x_s[j][i-1]);
+					else fxm = 0;
+				} else {
+					fxp = 0;
+					fxm = 0;
+				}
+
+				if (jump_y[j][i] != 0) {
+					if ((j != ngy-1) && (dcoef[j][i] != dcoef[j+1][i]))
+						fyp = 2.0*dcoef[j][i]*jump_y[j][i] / (dcoef[j][i] + dcoef[j+1][i]) / (y_t[j][i]+y_t[j+1][i]);
+					else fyp = 0;
+					if ((j != 0) && (dcoef[j][i] != dcoef[j-1][i]))
+						fym = 2.0*dcoef[j][i]*jump_y[j][i] / (dcoef[j][i] + dcoef[j-1][i]) / (y_t[j][i]+y_t[j-1][i]);
+					else fym = 0;
+				} else {
+					fyp = 0;
+					fym = 0;
+				}
 
 				bvec[j][i] = rhs[j][i] - fxp - fxm - fyp - fym;
 			}
